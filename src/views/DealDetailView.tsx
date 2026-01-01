@@ -194,7 +194,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
       </div>
 
       {/* ---- MERGED DEAL RISK PANEL ---- */}
-      <div className={`rounded-lg border p-5 ${getRiskColorClasses(deal.riskLevel)}`}>
+      <div className="rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
         {/* Top: Icon + Label + Score */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Left: Risk Icon + Labels */}
@@ -204,10 +204,10 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
             </div>
 
             <div className="flex flex-col">
-              <span className="text-xs font-medium uppercase tracking-wider opacity-70">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Deal Risk Level
               </span>
-              <span className="text-base font-semibold">
+              <span className="text-base font-semibold text-gray-900 dark:text-white">
                 {deal.riskLevel === "high" && "High Risk"}
                 {deal.riskLevel === "medium" && "Medium Risk"}
                 {deal.riskLevel === "low" && "Low Risk"}
@@ -216,41 +216,50 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
             </div>
           </div>
 
-          {/* Right: Score */}
+          {/* Right: Score with risk color */}
           <div className="flex flex-col items-end">
-            <span className="text-xs font-medium uppercase tracking-wider opacity-70">Risk Score</span>
-            <span className="text-2xl font-bold">
+            <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Risk Score</span>
+            <span className={`text-2xl font-bold ${
+              deal.riskLevel === "high" ? "text-risk-high" :
+              deal.riskLevel === "medium" ? "text-risk-medium" :
+              deal.riskLevel === "low" ? "text-risk-low" :
+              "text-gray-900 dark:text-white"
+            }`}>
               {deal.riskScore != null ? `${deal.riskScore}/100` : '—'}
             </span>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-current opacity-20 my-4" />
+        <div className="h-px bg-gray-200 dark:bg-zinc-700 my-4" />
 
         {/* Breakdown */}
         <div className="space-y-3">
-          <span className="text-xs font-semibold uppercase tracking-wider opacity-70">
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
             Risk Score Breakdown
           </span>
 
           {factors.map((f) => {
             const share = getShare(f.active);
+            const barColor = deal.riskLevel === "high" ? "bg-risk-high" :
+                             deal.riskLevel === "medium" ? "bg-risk-medium" :
+                             deal.riskLevel === "low" ? "bg-risk-low" :
+                             "bg-gray-400";
             return (
               <div key={f.id} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300">
                   <span className="font-medium">{f.label}</span>
                   <span>{share}%</span>
                 </div>
 
-                <div className="h-1.5 bg-current opacity-20 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-current rounded-full transition-all"
+                    className={`h-full ${barColor} rounded-full transition-all`}
                     style={{ width: `${share}%` }}
                   />
                 </div>
 
-                <p className="text-xs opacity-70">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {f.reason
                     ? f.reason
                     : "No specific risk detected for this factor."}

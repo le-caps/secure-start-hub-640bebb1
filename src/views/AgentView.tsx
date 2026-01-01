@@ -159,21 +159,17 @@ export const AgentView: React.FC<AgentViewProps> = ({ preferences, onSave }) => 
         </section>
       </div>
 
-      {/* Footer / Save */}
-      <div className="fixed bottom-0 left-0 lg:left-64 right-0 border-t border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 flex justify-between items-center z-20">
-        <span className="text-sm text-gray-500 font-medium px-4">
-          {isSaved ? "Saved." : "Unsaved changes."}
-        </span>
+      {/* Save Section - consistent with RiskEngineView */}
+      <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex justify-end">
         <button
           onClick={handleSave}
-          className={`flex items-center gap-2 px-6 py-2 rounded-md font-medium text-sm transition-all ${
+          className={`px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors ${
             isSaved 
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'bg-emerald-600 text-white cursor-default' 
+              : 'bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900'
           }`}
         >
-          {isSaved ? 'Saved' : 'Save Preferences'}
-          {!isSaved && <Save size={16} />}
+          {isSaved ? 'Preferences Saved' : 'Save Preferences'}
         </button>
       </div>
     </div>

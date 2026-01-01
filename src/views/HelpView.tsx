@@ -54,34 +54,34 @@ export const HelpView: React.FC = () => {
 
         {/* Contact Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
                 <MessageSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Live Chat</h3>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">
               Chat with our support team in real-time.
             </p>
-            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+            <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-4 rounded-md text-sm font-medium transition-colors">
               Start Chat
             </button>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Email Support</h3>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex-1">
               Send us an email and we{"'"}ll respond within 24 hours.
             </p>
             <a 
               href="mailto:support@drift.app" 
-              className="block w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md text-sm font-medium text-center transition-colors"
+              className="block w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 px-4 rounded-md text-sm font-medium text-center transition-colors"
             >
               Email Us
             </a>
