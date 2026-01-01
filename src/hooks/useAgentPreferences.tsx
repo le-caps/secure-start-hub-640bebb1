@@ -3,18 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { MOCK_AGENT_PREFERENCES } from "@/data/mockData";
 
 export type AgentPreferences = Tables<"agent_preferences">;
 export type UpdateAgentPreferencesInput = TablesUpdate<"agent_preferences">;
 
 export function useAgentPreferences() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const [preferences, setPreferences] = useState<AgentPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Demo mode: no session = use mock data
+  const isDemo = !session;
+
   const fetchPreferences = useCallback(async () => {
+    // Demo mode: return mock data immediately
+    if (isDemo) {
+      setPreferences(MOCK_AGENT_PREFERENCES);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setPreferences(null);
       setLoading(false);
@@ -62,13 +73,23 @@ export function useAgentPreferences() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isDemo]);
 
   useEffect(() => {
     fetchPreferences();
   }, [fetchPreferences]);
 
   const updatePreferences = async (input: UpdateAgentPreferencesInput): Promise<AgentPreferences | null> => {
+    // Block in demo mode
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour sauvegarder vos préférences" 
+      });
+      return null;
+    }
+
     if (!user || !preferences) return null;
 
     try {
@@ -97,6 +118,7 @@ export function useAgentPreferences() {
     preferences,
     loading,
     error,
+    isDemo,
     refetch: fetchPreferences,
     updatePreferences,
   };

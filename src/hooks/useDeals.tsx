@@ -2,20 +2,31 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
-import type { Tables, TablesInsert, TablesUpdate, Json } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { MOCK_DEALS } from "@/data/mockData";
 
 export type Deal = Tables<"deals">;
 export type CreateDealInput = Omit<TablesInsert<"deals">, "user_id" | "id" | "created_at" | "updated_at">;
 export type UpdateDealInput = TablesUpdate<"deals">;
 
 export function useDeals() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Demo mode: no session = use mock data
+  const isDemo = !session;
+
   const fetchDeals = useCallback(async () => {
+    // Demo mode: return mock data immediately
+    if (isDemo) {
+      setDeals(MOCK_DEALS);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setDeals([]);
       setLoading(false);
@@ -44,13 +55,23 @@ export function useDeals() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isDemo]);
 
   useEffect(() => {
     fetchDeals();
   }, [fetchDeals]);
 
   const createDeal = async (input: CreateDealInput): Promise<Deal | null> => {
+    // Block in demo mode
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour créer des deals" 
+      });
+      return null;
+    }
+
     if (!user) {
       toast({ variant: "destructive", title: "Non connecté" });
       return null;
@@ -86,6 +107,16 @@ export function useDeals() {
   };
 
   const updateDeal = async (id: string, input: UpdateDealInput): Promise<Deal | null> => {
+    // Block in demo mode
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour modifier des deals" 
+      });
+      return null;
+    }
+
     if (!user) return null;
 
     try {
@@ -93,7 +124,7 @@ export function useDeals() {
         .from("deals")
         .update(input)
         .eq("id", id)
-        .eq("user_id", user.id) // RLS double-check
+        .eq("user_id", user.id)
         .select()
         .single();
 
@@ -111,6 +142,16 @@ export function useDeals() {
   };
 
   const deleteDeal = async (id: string): Promise<boolean> => {
+    // Block in demo mode
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour supprimer des deals" 
+      });
+      return false;
+    }
+
     if (!user) return false;
 
     try {
@@ -118,7 +159,7 @@ export function useDeals() {
         .from("deals")
         .delete()
         .eq("id", id)
-        .eq("user_id", user.id); // RLS double-check
+        .eq("user_id", user.id);
 
       if (deleteError) throw deleteError;
 
@@ -137,6 +178,7 @@ export function useDeals() {
     deals,
     loading,
     error,
+    isDemo,
     refetch: fetchDeals,
     createDeal,
     updateDeal,
