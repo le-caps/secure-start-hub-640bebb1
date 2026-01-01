@@ -117,8 +117,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <section className="p-6 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
                 <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">Public Profile</h3>
                 <div className="flex items-center gap-6 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-lg font-bold text-gray-500 border border-gray-300 dark:border-zinc-700">
-                    JD
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold text-white border border-gray-300 dark:border-zinc-700">
+                    {localProfile.name
+                      .split(' ')
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase() || 'U'}
                   </div>
                   <div>
                     <button className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-zinc-600 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors mb-1">

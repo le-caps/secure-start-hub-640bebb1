@@ -17,6 +17,7 @@ export function useDeals() {
   const [error, setError] = useState<string | null>(null);
 
   // Demo mode: no session = use mock data
+  // Logged in users see their real deals (empty until HubSpot connected)
   const isDemo = !session;
 
   const fetchDeals = useCallback(async () => {
@@ -27,6 +28,7 @@ export function useDeals() {
       return;
     }
 
+    // Logged in: fetch from DB (will be empty until HubSpot sync)
     if (!user) {
       setDeals([]);
       setLoading(false);
@@ -49,7 +51,7 @@ export function useDeals() {
 
       setDeals(data || []);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur lors du chargement des deals";
+      const message = err instanceof Error ? err.message : "Error loading deals";
       setError(message);
       console.error("useDeals: fetch error", err);
     } finally {
@@ -66,14 +68,14 @@ export function useDeals() {
     if (isDemo) {
       toast({ 
         variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour créer des deals" 
+        title: "Demo Mode", 
+        description: "Sign in to create deals" 
       });
       return null;
     }
 
     if (!user) {
-      toast({ variant: "destructive", title: "Non connecté" });
+      toast({ variant: "destructive", title: "Not signed in" });
       return null;
     }
 
@@ -96,11 +98,11 @@ export function useDeals() {
       if (insertError) throw insertError;
 
       setDeals((prev) => [data, ...prev]);
-      toast({ title: "Deal créé", description: input.name });
+      toast({ title: "Deal created", description: input.name });
       return data;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur création deal";
-      toast({ variant: "destructive", title: "Erreur", description: message });
+      const message = err instanceof Error ? err.message : "Error creating deal";
+      toast({ variant: "destructive", title: "Error", description: message });
       console.error("useDeals: create error", err);
       return null;
     }
@@ -111,8 +113,8 @@ export function useDeals() {
     if (isDemo) {
       toast({ 
         variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour modifier des deals" 
+        title: "Demo Mode", 
+        description: "Sign in to update deals" 
       });
       return null;
     }
@@ -131,11 +133,11 @@ export function useDeals() {
       if (updateError) throw updateError;
 
       setDeals((prev) => prev.map((d) => (d.id === id ? data : d)));
-      toast({ title: "Deal mis à jour" });
+      toast({ title: "Deal updated" });
       return data;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur mise à jour";
-      toast({ variant: "destructive", title: "Erreur", description: message });
+      const message = err instanceof Error ? err.message : "Error updating deal";
+      toast({ variant: "destructive", title: "Error", description: message });
       console.error("useDeals: update error", err);
       return null;
     }
@@ -146,8 +148,8 @@ export function useDeals() {
     if (isDemo) {
       toast({ 
         variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour supprimer des deals" 
+        title: "Demo Mode", 
+        description: "Sign in to delete deals" 
       });
       return false;
     }
@@ -164,11 +166,11 @@ export function useDeals() {
       if (deleteError) throw deleteError;
 
       setDeals((prev) => prev.filter((d) => d.id !== id));
-      toast({ title: "Deal supprimé" });
+      toast({ title: "Deal deleted" });
       return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur suppression";
-      toast({ variant: "destructive", title: "Erreur", description: message });
+      const message = err instanceof Error ? err.message : "Error deleting deal";
+      toast({ variant: "destructive", title: "Error", description: message });
       console.error("useDeals: delete error", err);
       return false;
     }

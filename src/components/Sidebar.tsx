@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ViewState } from '@/types';
 import { Layers, PieChart, Bot, HelpCircle, Settings, X, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 interface SidebarProps {
   currentView: ViewState;
@@ -11,6 +13,22 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isOpen, setIsOpen }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useAuth();
+  const { profile, isDemo } = useProfile();
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (isDemo) return 'D';
+    const name = profile.name || user?.email || '';
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase() || 'U';
+  };
+
+  const displayName = isDemo ? 'Demo User' : (profile.name || user?.email?.split('@')[0] || 'User');
+  const displayEmail = isDemo ? 'demo@drift.app' : (profile.email || user?.email || '');
 
   const NavItem = ({ view, icon: Icon, label }: { view: ViewState; icon: React.ElementType; label: string }) => {
     const isActive = currentView === view || (view === 'deals' && currentView === 'dealDetails');
@@ -92,11 +110,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isO
           
           <div className={`flex items-center gap-3 px-3 py-2 mt-4 ${isCollapsed ? 'justify-center' : ''}`}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
-              JD
+              {getInitials()}
             </div>
-            <div className={`transition-all duration-200 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">John Doe</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">john@drift.app</p>
+            <div className={`transition-all duration-200 min-w-0 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 flex-1'}`}>
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{displayEmail}</p>
             </div>
           </div>
         </div>

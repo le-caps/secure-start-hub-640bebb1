@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from '@/hooks/useAuth';
 import { DemoProvider } from '@/hooks/useDemo';
 import { DemoBanner } from '@/components/DemoBanner';
+import { useProfile } from '@/hooks/useProfile';
 
 import { Sidebar } from '@/components/Sidebar';
 import { DealsView } from '@/views/DealsView';
@@ -19,7 +20,7 @@ import { HelpView } from '@/views/HelpView';
 import { RiskEngineView } from '@/views/RiskEngineView';
 import Auth from '@/pages/Auth';
 
-import { MOCK_DEALS, DEFAULT_PREFERENCES, DEFAULT_USER_PROFILE } from '@/constants';
+import { MOCK_DEALS, DEFAULT_PREFERENCES } from '@/constants';
 import { Deal, ViewState, AgentPreferences, UserProfile } from '@/types';
 import { computeRiskScore } from '@/services/riskEngine';
 import { Menu } from 'lucide-react';
@@ -30,11 +31,12 @@ const queryClient = new QueryClient();
 const MainApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('deals');
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const { profile: userProfile, setProfile: setUserProfile, isDemo } = useProfile();
 
   // Deals enriched with risk scoring
   const [deals, setDeals] = useState<Deal[]>(() => {
     return MOCK_DEALS.map((d) => {
-      const { score, riskLevel, riskFactors } = computeRiskScore(d, DEFAULT_USER_PROFILE);
+      const { score, riskLevel, riskFactors } = computeRiskScore(d, userProfile);
       return { ...d, riskScore: score, riskLevel, riskFactors };
     });
   });
@@ -42,8 +44,6 @@ const MainApp: React.FC = () => {
   const [preferences, setPreferences] = useState<AgentPreferences>(DEFAULT_PREFERENCES);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
 
   useEffect(() => {
     if (isDarkMode) document.documentElement.classList.add('dark');
