@@ -1,1 +1,7 @@
 project_id = "yvzbwapgqicnuhlyteeq"
+
+[functions.whoami]
+verify_jwt = true
+
+[functions.generate-followup]
+verify_jwt = false

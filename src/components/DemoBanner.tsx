@@ -19,10 +19,10 @@ export function DemoBanner() {
             className="bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30"
           >
             <FlaskConical className="h-3 w-3 mr-1" />
-            Mode Démo
+            Demo Mode
           </Badge>
           <span className="text-sm text-muted-foreground hidden sm:inline">
-            Explorez l'app avec des données fictives
+            Explore the app with sample data
           </span>
         </div>
         <Button 
@@ -31,7 +31,7 @@ export function DemoBanner() {
           className="gap-2"
         >
           <LogIn className="h-4 w-4" />
-          <span className="hidden sm:inline">Se connecter</span>
+          <span className="hidden sm:inline">Sign In</span>
         </Button>
       </div>
     </div>

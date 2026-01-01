@@ -57,6 +57,43 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        risk: {
+          high: {
+            DEFAULT: "hsl(var(--risk-high))",
+            foreground: "hsl(var(--risk-high-foreground))",
+            bg: "hsl(var(--risk-high-bg))",
+            border: "hsl(var(--risk-high-border))",
+          },
+          medium: {
+            DEFAULT: "hsl(var(--risk-medium))",
+            foreground: "hsl(var(--risk-medium-foreground))",
+            bg: "hsl(var(--risk-medium-bg))",
+            border: "hsl(var(--risk-medium-border))",
+          },
+          low: {
+            DEFAULT: "hsl(var(--risk-low))",
+            foreground: "hsl(var(--risk-low-foreground))",
+            bg: "hsl(var(--risk-low-bg))",
+            border: "hsl(var(--risk-low-border))",
+          },
+        },
+        priority: {
+          high: {
+            DEFAULT: "hsl(var(--priority-high))",
+            bg: "hsl(var(--priority-high-bg))",
+            border: "hsl(var(--priority-high-border))",
+          },
+          medium: {
+            DEFAULT: "hsl(var(--priority-medium))",
+            bg: "hsl(var(--priority-medium-bg))",
+            border: "hsl(var(--priority-medium-border))",
+          },
+          low: {
+            DEFAULT: "hsl(var(--priority-low))",
+            bg: "hsl(var(--priority-low-bg))",
+            border: "hsl(var(--priority-low-border))",
+          },
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

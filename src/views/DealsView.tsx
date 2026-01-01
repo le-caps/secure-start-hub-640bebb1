@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 // ===========================================================
-// ⭐️ RISK BADGE — affiché sur chaque card
+// RISK BADGE — displayed on each card
 // ===========================================================
 export const RiskBadge = ({
   score,
@@ -30,10 +30,9 @@ export const RiskBadge = ({
   if (score == null || !level) return null;
 
   const styles = {
-    high: "text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900",
-    medium:
-      "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900",
-    low: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900",
+    high: "text-risk-high bg-risk-high-bg border-risk-high-border",
+    medium: "text-risk-medium bg-risk-medium-bg border-risk-medium-border",
+    low: "text-risk-low bg-risk-low-bg border-risk-low-border",
   };
 
   const labels = {
@@ -56,10 +55,9 @@ export const RiskBadge = ({
 // ===========================================================
 const PriorityBadge = ({ priority }: { priority: Priority }) => {
   const styles = {
-    high: "text-rose-600 bg-rose-50 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-900",
-    medium:
-      "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900",
-    low: "text-gray-600 bg-gray-50 border-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:border-zinc-700",
+    high: "text-priority-high bg-priority-high-bg border-priority-high-border",
+    medium: "text-priority-medium bg-priority-medium-bg border-priority-medium-border",
+    low: "text-priority-low bg-priority-low-bg border-priority-low-border",
   };
 
   const labels = {
@@ -97,13 +95,13 @@ const getStageIcon = (stage: string) => {
 const getPriorityBarStyle = (priority: Priority) => {
   switch (priority) {
     case "high":
-      return "bg-rose-500";
+      return "bg-priority-high";
     case "medium":
-      return "bg-amber-500";
+      return "bg-priority-medium";
     case "low":
-      return "bg-gray-400";
+      return "bg-priority-low";
     default:
-      return "bg-gray-300";
+      return "bg-muted";
   }
 };
 

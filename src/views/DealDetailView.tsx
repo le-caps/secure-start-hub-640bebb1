@@ -10,13 +10,13 @@ import {
 const getRiskColorClasses = (level?: 'low' | 'medium' | 'high') => {
   switch (level) {
     case "high":
-      return "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-900";
+      return "text-risk-high bg-risk-high-bg border-risk-high-border";
     case "medium":
-      return "text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-900/20 dark:border-amber-900";
+      return "text-risk-medium bg-risk-medium-bg border-risk-medium-border";
     case "low":
-      return "text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-900/20 dark:border-emerald-900";
+      return "text-risk-low bg-risk-low-bg border-risk-low-border";
     default:
-      return "text-gray-600 bg-gray-50 border-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:border-zinc-700";
+      return "text-muted-foreground bg-muted border-border";
   }
 };
 
@@ -29,9 +29,9 @@ interface DealDetailViewProps {
 
 const PriorityBadge = ({ priority }: { priority: Priority }) => {
   const styles = {
-    high: 'text-rose-600 bg-rose-50 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-900',
-    medium: 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900',
-    low: 'text-gray-600 bg-gray-50 border-gray-200 dark:bg-zinc-800 dark:text-gray-400 dark:border-zinc-700',
+    high: "text-priority-high bg-priority-high-bg border-priority-high-border",
+    medium: "text-priority-medium bg-priority-medium-bg border-priority-medium-border",
+    low: "text-priority-low bg-priority-low-bg border-priority-low-border",
   };
 
   const labels = {
