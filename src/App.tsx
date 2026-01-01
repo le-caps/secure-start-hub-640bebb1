@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +9,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { DemoProvider } from '@/hooks/useDemo';
 import { DemoBanner } from '@/components/DemoBanner';
 import { useProfile } from '@/hooks/useProfile';
+import { useDeals } from '@/hooks/useDeals';
 
 import { Sidebar } from '@/components/Sidebar';
 import { DealsView } from '@/views/DealsView';
@@ -32,23 +33,9 @@ const MainApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('deals');
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const { profile: userProfile, setProfile: setUserProfile, isDemo } = useProfile();
-
-  // Deals: demo users see mock deals; signed-in users must connect HubSpot first
-  const [deals, setDeals] = useState<Deal[]>([]);
-
-  useEffect(() => {
-    if (!isDemo) {
-      setDeals([]);
-      return;
-    }
-
-    setDeals(
-      MOCK_DEALS.map((d) => {
-        const { score, riskLevel, riskFactors } = computeRiskScore(d, userProfile);
-        return { ...d, riskScore: score, riskLevel, riskFactors };
-      }),
-    );
-  }, [isDemo]);
+  
+  // Use the deals hook for real data management
+  const { deals: dbDeals, refetch: refetchDeals, isDemo: dealsIsDemo } = useDeals();
 
   const [preferences, setPreferences] = useState<AgentPreferences>(DEFAULT_PREFERENCES);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -61,23 +48,41 @@ const MainApp: React.FC = () => {
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-  // Enrich deals with risk when profile changes
-  const enrichDealsWithRisk = (dealList: Deal[], profile: UserProfile): Deal[] => {
-    return dealList.map((deal) => {
-      const { score, riskLevel, riskFactors } = computeRiskScore(deal, profile);
-      return {
-        ...deal,
-        riskScore: score,
-        riskLevel,
-        riskFactors,
+  // Convert DB deals to app Deal type with risk enrichment
+  const deals = useMemo(() => {
+    if (dealsIsDemo) {
+      // Demo mode: use mock deals
+      return MOCK_DEALS.map((d) => {
+        const { score, riskLevel, riskFactors } = computeRiskScore(d, userProfile);
+        return { ...d, riskScore: score, riskLevel, riskFactors };
+      });
+    }
+    
+    // Real deals from database - map to app Deal type
+    return dbDeals.map((dbDeal) => {
+      const metadata = dbDeal.metadata as Record<string, any> || {};
+      const appDeal: Deal = {
+        id: dbDeal.id,
+        name: dbDeal.name,
+        amount: dbDeal.amount || 0,
+        stage: dbDeal.stage || 'unknown',
+        currency: 'USD',
+        companyName: metadata.company_name || 'Unknown Company',
+        contactName: metadata.contact_name || 'Unknown Contact',
+        daysInStage: metadata.days_in_stage || 0,
+        daysInactive: metadata.days_inactive || 0,
+        priority: metadata.priority || 'medium',
+        lastActivityDate: metadata.last_activity || dbDeal.updated_at,
+        nextStep: metadata.next_step || '',
+        notes: metadata.notes || '',
+        crmUrl: dbDeal.hubspot_deal_id 
+          ? `https://app.hubspot.com/contacts/deals/${dbDeal.hubspot_deal_id}` 
+          : '',
       };
+      const { score, riskLevel, riskFactors } = computeRiskScore(appDeal, userProfile);
+      return { ...appDeal, riskScore: score, riskLevel, riskFactors };
     });
-  };
-
-  // Recalculate scores when profile changes
-  useEffect(() => {
-    setDeals((prev) => enrichDealsWithRisk(prev, userProfile));
-  }, [userProfile]);
+  }, [dbDeals, dealsIsDemo, userProfile]);
 
   const handleSelectDeal = (dealId: string) => {
     setSelectedDealId(dealId);
@@ -85,14 +90,8 @@ const MainApp: React.FC = () => {
   };
 
   const handleUpdateDeal = (updatedDeal: Deal) => {
-    const enriched = {
-      ...updatedDeal,
-      ...computeRiskScore(updatedDeal, userProfile),
-    };
-
-    setDeals((prev) =>
-      prev.map((d) => (d.id === updatedDeal.id ? enriched : d))
-    );
+    // For now, just refresh from DB after updates
+    refetchDeals();
   };
 
   const selectedDeal = deals.find((d) => d.id === selectedDealId);
@@ -100,9 +99,9 @@ const MainApp: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case 'deals':
-        return <DealsView deals={deals} onSelectDeal={handleSelectDeal} />;
+        return <DealsView deals={deals} onSelectDeal={handleSelectDeal} onRefreshDeals={refetchDeals} />;
       case 'dealDetails':
-        if (!selectedDeal) return <DealsView deals={deals} onSelectDeal={handleSelectDeal} />;
+        if (!selectedDeal) return <DealsView deals={deals} onSelectDeal={handleSelectDeal} onRefreshDeals={refetchDeals} />;
         return (
           <DealDetailView
             deal={selectedDeal}
@@ -136,7 +135,7 @@ const MainApp: React.FC = () => {
           />
         );
       default:
-        return <DealsView deals={deals} onSelectDeal={handleSelectDeal} />;
+        return <DealsView deals={deals} onSelectDeal={handleSelectDeal} onRefreshDeals={refetchDeals} />;
     }
   };
 
