@@ -27,9 +27,13 @@ export function useHubspot() {
     try {
       const { data, error } = await supabase.functions.invoke("hubspot-status");
       
-      if (error) throw error;
-      
-      setStatus(data || { connected: false });
+      // Even if there's an error, default to not connected
+      if (error) {
+        console.error("[useHubspot] Status check error:", error);
+        setStatus({ connected: false });
+      } else {
+        setStatus(data || { connected: false });
+      }
     } catch (err) {
       console.error("[useHubspot] Status check failed:", err);
       setStatus({ connected: false });
