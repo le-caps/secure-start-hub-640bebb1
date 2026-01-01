@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, Deal } from '@/types';
-import { User, Bell, Shield, CreditCard, Check, Download, Moon, Sun } from 'lucide-react';
+import { User, Bell, Shield, CreditCard, Check, Download, Moon, Sun, Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +45,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'billing' | 'account'>('general');
   const [localProfile, setLocalProfile] = useState<UserProfile>(profile);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Keep local state in sync (important when profile loads async after login)
   useEffect(() => {
@@ -70,15 +72,57 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleChangeAvatar = () => {
-    const nextUrl = window.prompt(
-      'Paste an image URL for your avatar (leave blank to remove):',
-      localProfile.avatarUrl || '',
-    );
+    fileInputRef.current?.click();
+  };
 
-    if (nextUrl === null) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !session?.user) return;
 
-    const trimmed = nextUrl.trim();
-    handleSave('avatarUrl', trimmed ? trimmed : undefined);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ variant: 'destructive', title: 'Please select an image file' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'Image must be under 5MB' });
+      return;
+    }
+
+    setAvatarUploading(true);
+    try {
+      const userId = session.user.id;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Add cache buster to force refresh
+      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+
+      // Update local state
+      handleSave('avatarUrl', avatarUrl);
+      toast({ title: 'Avatar updated!' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload avatar';
+      toast({ variant: 'destructive', title: 'Error', description: message });
+    } finally {
+      setAvatarUploading(false);
+      // Reset input so same file can be selected again
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleSignOut = async () => {
@@ -197,13 +241,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     )}
                   </div>
                   <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
                     <button
                       type="button"
                       onClick={handleChangeAvatar}
-                      className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-zinc-600 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors mb-1"
+                      disabled={avatarUploading}
+                      className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-zinc-600 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors mb-1 flex items-center gap-2 disabled:opacity-50"
                     >
-                      Change Avatar
+                      {avatarUploading ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={14} />
+                          Change Avatar
+                        </>
+                      )}
                     </button>
+                    <p className="text-xs text-gray-400">JPG, PNG up to 5MB</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

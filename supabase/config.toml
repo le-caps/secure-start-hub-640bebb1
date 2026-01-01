@@ -5,3 +5,21 @@ verify_jwt = true
 
 [functions.generate-followup]
 verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = true
+
+[functions.hubspot-auth]
+verify_jwt = true
+
+[functions.hubspot-callback]
+verify_jwt = false
+
+[functions.hubspot-sync]
+verify_jwt = false
+
+[functions.hubspot-status]
+verify_jwt = true
+
+[functions.hubspot-disconnect]
+verify_jwt = true
