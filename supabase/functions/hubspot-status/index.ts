@@ -39,9 +39,16 @@ serve(async (req) => {
       .from("hubspot_tokens")
       .select("id, expires_at, scope, updated_at")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
-    if (error || !tokenData) {
+    if (error) {
+      console.error("[hubspot-status] DB error:", error);
+      return new Response(JSON.stringify({ connected: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!tokenData) {
       return new Response(JSON.stringify({ connected: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
