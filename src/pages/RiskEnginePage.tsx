@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRiskSettings } from "@/hooks/useRiskSettings";
 import { useDeals } from "@/hooks/useDeals";
 import { useDemo } from "@/hooks/useDemo";
@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Shield,
   Save,
@@ -16,8 +17,11 @@ import {
   TrendingUp,
   TrendingDown,
   BarChart3,
+  Clock,
+  Calendar,
 } from "lucide-react";
-import { getRiskLevel, DEAL_STAGES } from "@/data/mockData";
+import { getRiskLevel } from "@/data/mockData";
+import { getStageInfo } from "@/lib/stageFormatter";
 
 function formatCurrency(amount: number | null): string {
   if (amount === null) return "—";
@@ -35,16 +39,19 @@ export function RiskEnginePage() {
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   // Local state for sliders
-  const [maxAmount, setMaxAmount] = useState<number>(riskSettings?.max_deal_amount ?? 100000);
-  const [alertThreshold, setAlertThreshold] = useState<number>(riskSettings?.alert_threshold ?? 80);
+  const [maxAmount, setMaxAmount] = useState<number>(100000);
+  const [alertThreshold, setAlertThreshold] = useState<number>(80);
+  const [riskyStages, setRiskyStages] = useState<string[]>([]);
 
   // Sync local state when settings load
-  useState(() => {
+  useEffect(() => {
     if (riskSettings) {
       setMaxAmount(riskSettings.max_deal_amount ?? 100000);
       setAlertThreshold(riskSettings.alert_threshold ?? 80);
+      const settings = riskSettings.settings as Record<string, unknown> | null;
+      setRiskyStages((settings?.riskyStages as string[]) ?? []);
     }
-  });
+  }, [riskSettings]);
 
   const handleSave = async () => {
     if (requireAuth("Sauvegarder les paramètres de risque")) {
@@ -54,15 +61,34 @@ export function RiskEnginePage() {
     await updateRiskSettings({
       max_deal_amount: maxAmount,
       alert_threshold: alertThreshold,
+      settings: {
+        ...((riskSettings?.settings as Record<string, unknown>) ?? {}),
+        riskyStages,
+      },
     });
   };
+
+  // Extract unique stages from user's deals
+  const uniqueStages = [...new Set(deals.map((d) => d.stage).filter(Boolean))] as string[];
 
   // Calculate risk stats from deals
   const dealsWithRisk = deals.map((deal) => {
     const metadata = deal.metadata as Record<string, unknown> | null;
+    const riskScore = (metadata?.riskScore as number) ?? 50;
+    const daysInStage = (metadata?.daysInStage as number) ?? 0;
+    const daysInactive = (metadata?.daysInactive as number) ?? 0;
+    
+    // Recalculate risk if stage is in risky stages
+    let adjustedRiskScore = riskScore;
+    if (riskyStages.includes(deal.stage ?? "")) {
+      adjustedRiskScore = Math.min(riskScore + 20, 100);
+    }
+    
     return {
       ...deal,
-      riskScore: (metadata?.riskScore as number) ?? 50,
+      riskScore: adjustedRiskScore,
+      daysInStage,
+      daysInactive,
     };
   });
 
@@ -71,6 +97,14 @@ export function RiskEnginePage() {
   const lowRiskDeals = dealsWithRisk.filter((d) => d.riskScore < 40);
 
   const loading = settingsLoading || dealsLoading;
+
+  const toggleRiskyStage = (stage: string) => {
+    setRiskyStages((prev) =>
+      prev.includes(stage)
+        ? prev.filter((s) => s !== stage)
+        : [...prev, stage]
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -207,6 +241,40 @@ export function RiskEnginePage() {
                 </p>
               </div>
 
+              {/* Risky Stages based on user's HubSpot stages */}
+              {uniqueStages.length > 0 && (
+                <div className="space-y-4">
+                  <Label>Stages à risque</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Les deals dans ces stages auront un score de risque plus élevé
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {uniqueStages.map((stage) => {
+                      const stageInfo = getStageInfo(stage);
+                      const isChecked = riskyStages.includes(stage);
+                      return (
+                        <label
+                          key={stage}
+                          className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            isChecked 
+                              ? "border-red-500/50 bg-red-500/10" 
+                              : "border-border hover:bg-muted/50"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => toggleRiskyStage(stage)}
+                          />
+                          <Badge className={`${stageInfo.color} text-white`}>
+                            {stageInfo.label}
+                          </Badge>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <Button onClick={handleSave} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
                 Sauvegarder
@@ -231,23 +299,35 @@ export function RiskEnginePage() {
           <CardContent>
             <div className="space-y-3">
               {highRiskDeals.map((deal) => {
-                const stage = DEAL_STAGES[deal.stage as keyof typeof DEAL_STAGES] ?? DEAL_STAGES.new;
+                const stageInfo = getStageInfo(deal.stage);
+                const metadata = deal.metadata as Record<string, unknown> | null;
+                const company = (metadata?.company as string) ?? null;
+                
                 return (
                   <div 
                     key={deal.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                   >
-                    <div>
-                      <p className="font-medium">{deal.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatCurrency(deal.amount)}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{deal.name}</p>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        {company && <span>{company}</span>}
+                        <span>{formatCurrency(deal.amount)}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={`${stage.color} text-white`}>
-                        {stage.label}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{deal.daysInStage}j en stage</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>{deal.daysInactive}j inactif</span>
+                      </div>
+                      <Badge className={`${stageInfo.color} text-white`}>
+                        {stageInfo.label}
                       </Badge>
-                      <span className="text-red-600 font-semibold">
+                      <span className="text-red-600 font-semibold min-w-[40px] text-right">
                         {deal.riskScore}%
                       </span>
                     </div>

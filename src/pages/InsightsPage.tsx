@@ -4,14 +4,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { 
   Lightbulb,
-  TrendingUp,
-  TrendingDown,
   AlertCircle,
   CheckCircle2,
-  ArrowRight,
-  DollarSign,
+  Clock,
+  TrendingUp,
+  Calendar,
 } from "lucide-react";
-import { DEAL_STAGES, getRiskLevel } from "@/data/mockData";
+import { getStageInfo } from "@/lib/stageFormatter";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("fr-FR", {
@@ -32,29 +31,56 @@ interface Insight {
 export function InsightsPage() {
   const { deals, loading } = useDeals();
 
-  // Calculate insights from deals
-  const totalPipeline = deals.reduce((sum, d) => sum + (d.amount ?? 0), 0);
-  const avgDealSize = deals.length > 0 ? totalPipeline / deals.length : 0;
-  
-  const dealsByStage = deals.reduce((acc, deal) => {
-    const stage = deal.stage ?? "new";
-    acc[stage] = (acc[stage] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const dealsWithRisk = deals.map((deal) => {
+  // Extract metrics from deals with HubSpot data
+  const dealsWithMetrics = deals.map((deal) => {
     const metadata = deal.metadata as Record<string, unknown> | null;
     return {
       ...deal,
       riskScore: (metadata?.riskScore as number) ?? 50,
+      daysInStage: (metadata?.daysInStage as number) ?? 0,
+      daysInactive: (metadata?.daysInactive as number) ?? 0,
+      company: (metadata?.company as string) ?? null,
+      nextStep: (metadata?.nextStep as string) ?? null,
     };
   });
 
-  const highRiskCount = dealsWithRisk.filter((d) => d.riskScore >= 70).length;
-  const wonDeals = deals.filter((d) => d.stage === "closed_won");
-  const lostDeals = deals.filter((d) => d.stage === "closed_lost");
+  // Calculate insights from deals
+  const totalPipeline = deals.reduce((sum, d) => sum + (d.amount ?? 0), 0);
+  const avgDealSize = deals.length > 0 ? totalPipeline / deals.length : 0;
+  
+  // Group deals by stage
+  const dealsByStage = deals.reduce((acc, deal) => {
+    const stage = deal.stage ?? "unknown";
+    acc[stage] = (acc[stage] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Calculate stage values
+  const valueByStage = deals.reduce((acc, deal) => {
+    const stage = deal.stage ?? "unknown";
+    acc[stage] = (acc[stage] || 0) + (deal.amount ?? 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  const highRiskCount = dealsWithMetrics.filter((d) => d.riskScore >= 70).length;
+  const stalledDeals = dealsWithMetrics.filter((d) => d.daysInactive > 7);
+  const dealsWithoutNextStep = dealsWithMetrics.filter((d) => !d.nextStep && !["closedwon", "closedlost", "closed_won", "closed_lost"].includes((d.stage ?? "").toLowerCase().replace(/[_-]/g, "")));
+  
+  const wonDeals = deals.filter((d) => {
+    const stage = (d.stage ?? "").toLowerCase().replace(/[_-]/g, "");
+    return stage === "closedwon";
+  });
+  const lostDeals = deals.filter((d) => {
+    const stage = (d.stage ?? "").toLowerCase().replace(/[_-]/g, "");
+    return stage === "closedlost";
+  });
   const winRate = wonDeals.length + lostDeals.length > 0 
     ? Math.round((wonDeals.length / (wonDeals.length + lostDeals.length)) * 100)
+    : 0;
+
+  // Average days in stage
+  const avgDaysInStage = dealsWithMetrics.length > 0
+    ? Math.round(dealsWithMetrics.reduce((sum, d) => sum + d.daysInStage, 0) / dealsWithMetrics.length)
     : 0;
 
   // Generate insights
@@ -66,6 +92,26 @@ export function InsightsPage() {
       type: "warning",
       title: `${highRiskCount} deal${highRiskCount > 1 ? "s" : ""} à risque élevé`,
       description: "Ces opportunités nécessitent une attention particulière pour éviter les pertes.",
+    });
+  }
+
+  if (stalledDeals.length > 0) {
+    const stalledValue = stalledDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0);
+    insights.push({
+      id: "stalled",
+      type: "warning",
+      title: `${stalledDeals.length} deal${stalledDeals.length > 1 ? "s" : ""} inactif${stalledDeals.length > 1 ? "s" : ""} (>7 jours)`,
+      description: `${formatCurrency(stalledValue)} de revenus potentiels en attente de suivi.`,
+      value: formatCurrency(stalledValue),
+    });
+  }
+
+  if (dealsWithoutNextStep.length > 0) {
+    insights.push({
+      id: "no-next-step",
+      type: "info",
+      title: `${dealsWithoutNextStep.length} deal${dealsWithoutNextStep.length > 1 ? "s" : ""} sans prochaine étape`,
+      description: "Définissez une prochaine action pour maintenir la progression.",
     });
   }
 
@@ -87,15 +133,6 @@ export function InsightsPage() {
     });
   }
 
-  if (dealsByStage["negotiation"] > 2) {
-    insights.push({
-      id: "negotiation",
-      type: "info",
-      title: "Deals en négociation active",
-      description: `${dealsByStage["negotiation"]} deals sont en phase finale de négociation.`,
-    });
-  }
-
   if (avgDealSize > 50000) {
     insights.push({
       id: "avg-deal",
@@ -111,7 +148,7 @@ export function InsightsPage() {
       id: "no-deals",
       type: "info",
       title: "Commencez à créer des deals",
-      description: "Ajoutez vos premières opportunités pour obtenir des insights personnalisés.",
+      description: "Ajoutez vos premières opportunités ou synchronisez HubSpot pour obtenir des insights personnalisés.",
     });
   }
 
@@ -137,6 +174,10 @@ export function InsightsPage() {
     }
   };
 
+  // Get unique stages sorted by value
+  const stagesSortedByValue = Object.entries(valueByStage)
+    .sort(([, a], [, b]) => b - a);
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -154,7 +195,10 @@ export function InsightsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pipeline Total</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              Pipeline Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -180,14 +224,17 @@ export function InsightsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Taux de conversion</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              Vélocité moyenne
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <div className={`text-2xl font-bold ${winRate >= 50 ? "text-green-600" : "text-amber-600"}`}>
-                {winRate}%
+              <div className="text-2xl font-bold">
+                {avgDaysInStage} <span className="text-sm font-normal text-muted-foreground">jours en stage</span>
               </div>
             )}
           </CardContent>
@@ -195,14 +242,20 @@ export function InsightsPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Deals actifs</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              Deals actifs
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-12" />
             ) : (
               <div className="text-2xl font-bold">
-                {deals.filter((d) => !["closed_won", "closed_lost"].includes(d.stage ?? "")).length}
+                {deals.filter((d) => {
+                  const stage = (d.stage ?? "").toLowerCase().replace(/[_-]/g, "");
+                  return !["closedwon", "closedlost"].includes(stage);
+                }).length}
               </div>
             )}
           </CardContent>
@@ -258,7 +311,7 @@ export function InsightsPage() {
         )}
       </div>
 
-      {/* Stage Distribution */}
+      {/* Stage Distribution with real HubSpot stages */}
       <Card>
         <CardHeader>
           <CardTitle>Répartition par étape</CardTitle>
@@ -269,25 +322,34 @@ export function InsightsPage() {
         <CardContent>
           {loading ? (
             <Skeleton className="h-32 w-full" />
+          ) : stagesSortedByValue.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Aucun deal à afficher
+            </p>
           ) : (
             <div className="space-y-3">
-              {Object.entries(DEAL_STAGES).map(([key, stage]) => {
-                const count = dealsByStage[key] || 0;
-                const percentage = deals.length > 0 ? Math.round((count / deals.length) * 100) : 0;
+              {stagesSortedByValue.map(([stage, value]) => {
+                const stageInfo = getStageInfo(stage);
+                const count = dealsByStage[stage] || 0;
+                const percentage = totalPipeline > 0 ? Math.round((value / totalPipeline) * 100) : 0;
+                
                 return (
-                  <div key={key} className="flex items-center gap-4">
-                    <Badge className={`${stage.color} text-white min-w-[100px] justify-center`}>
-                      {stage.label}
+                  <div key={stage} className="flex items-center gap-4">
+                    <Badge className={`${stageInfo.color} text-white min-w-[140px] justify-center`}>
+                      {stageInfo.label}
                     </Badge>
                     <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className={`h-full ${stage.color}`}
+                        className={`h-full ${stageInfo.color}`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <span className="text-sm font-medium min-w-[40px] text-right">
-                      {count}
-                    </span>
+                    <div className="text-sm min-w-[120px] text-right">
+                      <span className="font-medium">{count} deals</span>
+                      <span className="text-muted-foreground ml-2">
+                        ({formatCurrency(value)})
+                      </span>
+                    </div>
                   </div>
                 );
               })}
