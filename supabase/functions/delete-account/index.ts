@@ -48,16 +48,12 @@ serve(async (req: Request) => {
 
     // Best-effort cleanup of user-owned data
     // (ignore failures per-table so deletion doesn't get stuck on partial data)
-    const cleanupSteps: Array<Promise<unknown>> = [
-      supabaseAdmin.from("hubspot_tokens").delete().eq("user_id", userId),
-      supabaseAdmin.from("deals").delete().eq("user_id", userId),
-      supabaseAdmin.from("agent_preferences").delete().eq("user_id", userId),
-      supabaseAdmin.from("risk_settings").delete().eq("user_id", userId),
-      supabaseAdmin.from("user_roles").delete().eq("user_id", userId),
-      supabaseAdmin.from("profiles").delete().eq("id", userId),
-    ];
-
-    await Promise.allSettled(cleanupSteps);
+    await supabaseAdmin.from("hubspot_tokens").delete().eq("user_id", userId);
+    await supabaseAdmin.from("deals").delete().eq("user_id", userId);
+    await supabaseAdmin.from("agent_preferences").delete().eq("user_id", userId);
+    await supabaseAdmin.from("risk_settings").delete().eq("user_id", userId);
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    await supabaseAdmin.from("profiles").delete().eq("id", userId);
 
     const { error: deleteAuthError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
