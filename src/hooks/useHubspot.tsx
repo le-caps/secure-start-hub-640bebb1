@@ -25,8 +25,10 @@ export function useHubspot() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-status");
-      
+      const { data, error } = await supabase.functions.invoke("hubspot-status", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
       // Even if there's an error, default to not connected
       if (error) {
         console.error("[useHubspot] Status check error:", error);
@@ -53,17 +55,40 @@ export function useHubspot() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-auth");
-      
+      const { data, error } = await supabase.functions.invoke("hubspot-auth", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
       if (error) throw error;
-      
+
       if (data?.authUrl) {
         window.location.href = data.authUrl;
       } else {
         throw new Error("No auth URL received");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to start HubSpot connection";
+      const anyErr = err as any;
+      let message = anyErr instanceof Error ? anyErr.message : "Failed to start HubSpot connection";
+
+      // Supabase Functions errors often hide the real response body.
+      // Try to extract it so we can debug.
+      try {
+        const status = anyErr?.context?.status;
+        if (typeof anyErr?.context?.text === "function") {
+          const raw = await anyErr.context.text();
+          try {
+            const parsed = JSON.parse(raw);
+            message = parsed?.error || parsed?.message || raw || message;
+          } catch {
+            message = raw || message;
+          }
+          if (status) message = `${message} (status ${status})`;
+        }
+      } catch {
+        // ignore
+      }
+
+      console.error("[useHubspot] Connect failed:", anyErr);
       toast({ variant: "destructive", title: "Error", description: message });
     }
   };
@@ -75,10 +100,12 @@ export function useHubspot() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase.functions.invoke("hubspot-disconnect");
-      
+      const { error } = await supabase.functions.invoke("hubspot-disconnect", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
       if (error) throw error;
-      
+
       setStatus({ connected: false });
       toast({ title: "HubSpot disconnected" });
     } catch (err) {
@@ -92,7 +119,9 @@ export function useHubspot() {
 
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-sync");
+      const { data, error } = await supabase.functions.invoke("hubspot-sync", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       
       if (error) throw error;
       
