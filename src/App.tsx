@@ -33,13 +33,22 @@ const MainApp: React.FC = () => {
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const { profile: userProfile, setProfile: setUserProfile, isDemo } = useProfile();
 
-  // Deals enriched with risk scoring
-  const [deals, setDeals] = useState<Deal[]>(() => {
-    return MOCK_DEALS.map((d) => {
-      const { score, riskLevel, riskFactors } = computeRiskScore(d, userProfile);
-      return { ...d, riskScore: score, riskLevel, riskFactors };
-    });
-  });
+  // Deals: demo users see mock deals; signed-in users must connect HubSpot first
+  const [deals, setDeals] = useState<Deal[]>([]);
+
+  useEffect(() => {
+    if (!isDemo) {
+      setDeals([]);
+      return;
+    }
+
+    setDeals(
+      MOCK_DEALS.map((d) => {
+        const { score, riskLevel, riskFactors } = computeRiskScore(d, userProfile);
+        return { ...d, riskScore: score, riskLevel, riskFactors };
+      }),
+    );
+  }, [isDemo]);
 
   const [preferences, setPreferences] = useState<AgentPreferences>(DEFAULT_PREFERENCES);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

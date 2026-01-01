@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserProfile, Deal } from '@/types';
 import { User, Bell, Shield, CreditCard, Check, Download, Moon, Sun } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SettingsViewProps {
   profile: UserProfile;
@@ -36,8 +39,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onToggleDarkMode,
   deals,
 }) => {
+  const { session, signOut } = useAuth();
+  const { toast } = useToast();
+
   const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'billing' | 'account'>('general');
   const [localProfile, setLocalProfile] = useState<UserProfile>(profile);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Keep local state in sync (important when profile loads async after login)
+  useEffect(() => {
+    setLocalProfile(profile);
+  }, [profile]);
 
   const handleSave = (key: keyof UserProfile, value: any) => {
     const updated = { ...localProfile, [key]: value };
@@ -55,6 +67,55 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     };
     setLocalProfile(updated);
     onUpdateProfile(updated);
+  };
+
+  const handleChangeAvatar = () => {
+    const nextUrl = window.prompt(
+      'Paste an image URL for your avatar (leave blank to remove):',
+      localProfile.avatarUrl || '',
+    );
+
+    if (nextUrl === null) return;
+
+    const trimmed = nextUrl.trim();
+    handleSave('avatarUrl', trimmed ? trimmed : undefined);
+  };
+
+  const handleSignOut = async () => {
+    if (!session) return;
+
+    try {
+      await signOut();
+      toast({ title: 'Signed out' });
+      window.location.href = '/auth';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to sign out';
+      toast({ variant: 'destructive', title: 'Error', description: message });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!session) return;
+
+    const confirmed = window.confirm(
+      'This will permanently delete your account and all your data. Continue?',
+    );
+    if (!confirmed) return;
+
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke('delete-account');
+      if (error) throw error;
+
+      toast({ title: 'Account deleted' });
+      await signOut();
+      window.location.href = '/auth';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete account';
+      toast({ variant: 'destructive', title: 'Error', description: message });
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -117,17 +178,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <section className="p-6 rounded-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800">
                 <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">Public Profile</h3>
                 <div className="flex items-center gap-6 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold text-white border border-gray-300 dark:border-zinc-700">
-                    {localProfile.name
-                      .split(' ')
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase() || 'U'}
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-lg font-bold text-white border border-gray-300 dark:border-zinc-700">
+                    {localProfile.avatarUrl ? (
+                      <img
+                        src={localProfile.avatarUrl}
+                        alt={`${localProfile.name} avatar`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      localProfile.name
+                        .split(' ')
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((n) => n[0])
+                        .join('')
+                        .toUpperCase() || 'U'
+                    )}
                   </div>
                   <div>
-                    <button className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-zinc-600 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors mb-1">
+                    <button
+                      type="button"
+                      onClick={handleChangeAvatar}
+                      className="px-3 py-1.5 rounded-md border border-gray-300 dark:border-zinc-600 text-xs font-semibold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors mb-1"
+                    >
                       Change Avatar
                     </button>
                   </div>
@@ -368,7 +442,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">Sign Out</p>
                     </div>
-                    <button className="px-3 py-1.5 border border-gray-300 dark:border-zinc-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors">
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={!session}
+                      className="px-3 py-1.5 border border-gray-300 dark:border-zinc-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                    >
                       Log Out
                     </button>
                   </div>
@@ -376,8 +455,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">Delete Account</p>
                     </div>
-                    <button className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 rounded-md text-sm font-medium hover:bg-rose-100 transition-colors">
-                      Delete Account
+                    <button
+                      type="button"
+                      onClick={handleDeleteAccount}
+                      disabled={!session || deleteLoading}
+                      className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 rounded-md text-sm font-medium hover:bg-rose-100 transition-colors disabled:opacity-50"
+                    >
+                      {deleteLoading ? 'Deleting…' : 'Delete Account'}
                     </button>
                   </div>
                 </div>
