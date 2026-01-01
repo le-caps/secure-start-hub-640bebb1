@@ -38,6 +38,35 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Risk semantic colors */
+    --risk-high: 0 84% 60%;
+    --risk-high-foreground: 0 0% 100%;
+    --risk-high-bg: 0 86% 97%;
+    --risk-high-border: 0 84% 85%;
+
+    --risk-medium: 38 92% 50%;
+    --risk-medium-foreground: 0 0% 100%;
+    --risk-medium-bg: 38 92% 95%;
+    --risk-medium-border: 38 92% 80%;
+
+    --risk-low: 160 84% 39%;
+    --risk-low-foreground: 0 0% 100%;
+    --risk-low-bg: 160 84% 95%;
+    --risk-low-border: 160 84% 75%;
+
+    /* Priority semantic colors */
+    --priority-high: 350 89% 60%;
+    --priority-high-bg: 350 89% 97%;
+    --priority-high-border: 350 89% 85%;
+
+    --priority-medium: 38 92% 50%;
+    --priority-medium-bg: 38 92% 95%;
+    --priority-medium-border: 38 92% 80%;
+
+    --priority-low: 220 9% 46%;
+    --priority-low-bg: 220 9% 97%;
+    --priority-low-border: 220 9% 85%;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -76,6 +105,35 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+
+    /* Risk semantic colors - dark mode */
+    --risk-high: 0 72% 51%;
+    --risk-high-foreground: 0 86% 97%;
+    --risk-high-bg: 0 62% 15%;
+    --risk-high-border: 0 62% 25%;
+
+    --risk-medium: 38 92% 50%;
+    --risk-medium-foreground: 38 92% 95%;
+    --risk-medium-bg: 38 50% 15%;
+    --risk-medium-border: 38 50% 25%;
+
+    --risk-low: 160 84% 39%;
+    --risk-low-foreground: 160 84% 95%;
+    --risk-low-bg: 160 50% 15%;
+    --risk-low-border: 160 50% 25%;
+
+    /* Priority semantic colors - dark mode */
+    --priority-high: 350 89% 60%;
+    --priority-high-bg: 350 50% 15%;
+    --priority-high-border: 350 50% 25%;
+
+    --priority-medium: 38 92% 50%;
+    --priority-medium-bg: 38 50% 15%;
+    --priority-medium-border: 38 50% 25%;
+
+    --priority-low: 220 9% 65%;
+    --priority-low-bg: 220 9% 15%;
+    --priority-low-border: 220 9% 25%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

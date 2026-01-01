@@ -11,14 +11,14 @@ import { z } from "zod";
 import { Loader2, Shield, Mail, Lock, User } from "lucide-react";
 
 // Validation schemas
-const emailSchema = z.string().email("Email invalide").max(255);
+const emailSchema = z.string().email("Invalid email").max(255);
 const passwordSchema = z.string()
-  .min(8, "Minimum 8 caractères")
-  .max(72, "Maximum 72 caractères")
-  .regex(/[A-Z]/, "Au moins une majuscule")
-  .regex(/[a-z]/, "Au moins une minuscule")
-  .regex(/[0-9]/, "Au moins un chiffre");
-const nameSchema = z.string().min(2, "Minimum 2 caractères").max(100);
+  .min(8, "Minimum 8 characters")
+  .max(72, "Maximum 72 characters")
+  .regex(/[A-Z]/, "At least one uppercase letter")
+  .regex(/[a-z]/, "At least one lowercase letter")
+  .regex(/[0-9]/, "At least one digit");
+const nameSchema = z.string().min(2, "Minimum 2 characters").max(100);
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function Auth() {
     }
 
     if (!loginPassword) {
-      newErrors.loginPassword = "Mot de passe requis";
+      newErrors.loginPassword = "Password required";
     }
 
     setErrors(newErrors);
@@ -121,19 +121,19 @@ export default function Auth() {
         if (error.message.includes("Invalid login credentials")) {
           toast({
             variant: "destructive",
-            title: "Échec de connexion",
-            description: "Email ou mot de passe incorrect",
+            title: "Login failed",
+            description: "Invalid email or password",
           });
         } else if (error.message.includes("Email not confirmed")) {
           toast({
             variant: "destructive",
-            title: "Email non confirmé",
-            description: "Veuillez confirmer votre email avant de vous connecter",
+            title: "Email not confirmed",
+            description: "Please confirm your email before signing in",
           });
         } else {
           toast({
             variant: "destructive",
-            title: "Erreur",
+            title: "Error",
             description: error.message,
           });
         }
@@ -141,8 +141,8 @@ export default function Auth() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        title: "Error",
+        description: "An unexpected error occurred",
       });
     } finally {
       setLoading(false);
@@ -172,20 +172,20 @@ export default function Auth() {
         if (error.message.includes("already registered")) {
           toast({
             variant: "destructive",
-            title: "Email déjà utilisé",
-            description: "Un compte existe déjà avec cet email",
+            title: "Email already in use",
+            description: "An account with this email already exists",
           });
         } else {
           toast({
             variant: "destructive",
-            title: "Erreur d'inscription",
+            title: "Signup error",
             description: error.message,
           });
         }
       } else {
         toast({
-          title: "Inscription réussie !",
-          description: "Vérifiez votre email pour confirmer votre compte",
+          title: "Signup successful!",
+          description: "Check your email to confirm your account",
         });
         // Clear form
         setSignupEmail("");
@@ -195,8 +195,8 @@ export default function Auth() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur inattendue s'est produite",
+        title: "Error",
+        description: "An unexpected error occurred",
       });
     } finally {
       setLoading(false);
@@ -218,16 +218,16 @@ export default function Auth() {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Bienvenue</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
           <CardDescription>
-            Connectez-vous pour accéder à votre espace sécurisé
+            Sign in to access your secure workspace
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
+              <TabsTrigger value="login">Sign In</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
@@ -239,7 +239,7 @@ export default function Auth() {
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="vous@exemple.com"
+                    placeholder="you@example.com"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     disabled={loading}
@@ -251,7 +251,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password" className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" /> Mot de passe
+                    <Lock className="h-4 w-4" /> Password
                   </Label>
                   <Input
                     id="login-password"
@@ -270,10 +270,10 @@ export default function Auth() {
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connexion...
+                      Signing in...
                     </>
                   ) : (
-                    "Se connecter"
+                    "Sign In"
                   )}
                 </Button>
               </form>
@@ -283,12 +283,12 @@ export default function Auth() {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name" className="flex items-center gap-2">
-                    <User className="h-4 w-4" /> Nom complet
+                    <User className="h-4 w-4" /> Full Name
                   </Label>
                   <Input
                     id="signup-name"
                     type="text"
-                    placeholder="Jean Dupont"
+                    placeholder="John Doe"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     disabled={loading}
@@ -305,7 +305,7 @@ export default function Auth() {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="vous@exemple.com"
+                    placeholder="you@example.com"
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     disabled={loading}
@@ -317,7 +317,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="flex items-center gap-2">
-                    <Lock className="h-4 w-4" /> Mot de passe
+                    <Lock className="h-4 w-4" /> Password
                   </Label>
                   <Input
                     id="signup-password"
@@ -332,17 +332,17 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{errors.signupPassword}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    8+ caractères, majuscule, minuscule, chiffre
+                    8+ characters, uppercase, lowercase, digit
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Inscription...
+                      Signing up...
                     </>
                   ) : (
-                    "S'inscrire"
+                    "Sign Up"
                   )}
                 </Button>
               </form>
