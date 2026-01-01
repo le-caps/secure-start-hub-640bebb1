@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Deal, Priority } from "@/types";
+import { useDemo } from "@/hooks/useDemo";
 import {
   Clock,
   Search,
@@ -15,6 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Building,
+  Link2,
+  ExternalLink,
 } from "lucide-react";
 
 // ===========================================================
@@ -112,6 +115,7 @@ export const DealsView: React.FC<{
   deals: Deal[];
   onSelectDeal: (dealId: string) => void;
 }> = ({ deals, onSelectDeal }) => {
+  const { isDemo } = useDemo();
   const ITEMS_PER_PAGE = 6;
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<"all" | Priority>("all");
@@ -180,13 +184,49 @@ export const DealsView: React.FC<{
   // ---------------------------------------------------------
   // RENDER
   // ---------------------------------------------------------
+  
+  // Show HubSpot connection prompt for logged-in users with no deals
+  if (!isDemo && deals.length === 0) {
+    return (
+      <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+            My Deals
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
+            Connect your CRM to start tracking deals
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-6">
+            <Link2 size={40} className="text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Connect HubSpot
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
+            Sync your deals from HubSpot to track stalled opportunities and get AI-powered insights.
+          </p>
+          <button className="bg-[#ff7a59] hover:bg-[#ff5c35] text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors">
+            <ExternalLink size={18} />
+            Connect HubSpot
+          </button>
+          <p className="text-xs text-gray-400 mt-4">
+            We only request read access to your deals and properties
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
-            My Stalled Deals
+            {isDemo ? "My Stalled Deals (Demo)" : "My Stalled Deals"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
             Action required on {filteredAndSortedDeals.length} opportunities
