@@ -8,17 +8,17 @@ serve(async (req) => {
     const state = url.searchParams.get("state");
     const error = url.searchParams.get("error");
 
-    // Get frontend URL for redirects
+    // Get frontend URL for redirects - use root path since app uses view states not routes
     const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://yvzbwapgqicnuhlyteeq.lovableproject.com";
 
     if (error) {
       console.error("[hubspot-callback] OAuth error:", error);
-      return Response.redirect(`${FRONTEND_URL}/deals?error=oauth_denied`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=oauth_denied`, 302);
     }
 
     if (!code || !state) {
       console.error("[hubspot-callback] Missing code or state");
-      return Response.redirect(`${FRONTEND_URL}/deals?error=missing_params`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=missing_params`, 302);
     }
 
     // Decode state to get user ID
@@ -28,7 +28,7 @@ serve(async (req) => {
       userId = stateData.userId;
     } catch {
       console.error("[hubspot-callback] Invalid state parameter");
-      return Response.redirect(`${FRONTEND_URL}/deals?error=invalid_state`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=invalid_state`, 302);
     }
 
     const HUBSPOT_CLIENT_ID = Deno.env.get("HUBSPOT_CLIENT_ID");
@@ -38,7 +38,7 @@ serve(async (req) => {
 
     if (!HUBSPOT_CLIENT_ID || !HUBSPOT_CLIENT_SECRET || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error("[hubspot-callback] Missing environment variables");
-      return Response.redirect(`${FRONTEND_URL}/deals?error=config_error`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=config_error`, 302);
     }
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/hubspot-callback`;
@@ -62,7 +62,7 @@ serve(async (req) => {
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("[hubspot-callback] Token exchange failed:", errorText);
-      return Response.redirect(`${FRONTEND_URL}/deals?error=token_exchange_failed`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=token_exchange_failed`, 302);
     }
 
     const tokenData = await tokenResponse.json();
@@ -87,17 +87,17 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error("[hubspot-callback] Failed to store tokens:", upsertError);
-      return Response.redirect(`${FRONTEND_URL}/deals?error=storage_failed`, 302);
+      return Response.redirect(`${FRONTEND_URL}/?error=storage_failed`, 302);
     }
 
     console.log("[hubspot-callback] Tokens stored successfully for user:", userId);
 
     // Note: we don't auto-sync here. After redirect, the UI will let the user trigger sync.
 
-    return Response.redirect(`${FRONTEND_URL}/deals?success=connected`, 302);
+    return Response.redirect(`${FRONTEND_URL}/?hubspot=connected`, 302);
   } catch (err) {
     console.error("[hubspot-callback] Unexpected error:", err);
     const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://yvzbwapgqicnuhlyteeq.lovableproject.com";
-    return Response.redirect(`${FRONTEND_URL}/deals?error=unexpected`, 302);
+    return Response.redirect(`${FRONTEND_URL}/?error=unexpected`, 302);
   }
 });
