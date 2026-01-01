@@ -92,20 +92,7 @@ serve(async (req) => {
 
     console.log("[hubspot-callback] Tokens stored successfully for user:", userId);
 
-    // Trigger initial sync
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/hubspot-sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ userId }),
-      });
-      console.log("[hubspot-callback] Sync triggered");
-    } catch (syncErr) {
-      console.error("[hubspot-callback] Sync trigger failed (non-blocking):", syncErr);
-    }
+    // Note: we don't auto-sync here. After redirect, the UI will let the user trigger sync.
 
     return Response.redirect(`${FRONTEND_URL}/deals?success=connected`, 302);
   } catch (err) {

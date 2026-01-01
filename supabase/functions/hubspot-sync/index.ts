@@ -15,7 +15,6 @@ interface HubSpotDeal {
     closedate?: string;
     createdate?: string;
     hs_lastmodifieddate?: string;
-    hubspot_owner_id?: string;
   };
 }
 
@@ -26,59 +25,56 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const HUBSPOT_CLIENT_ID = Deno.env.get("HUBSPOT_CLIENT_ID");
     const HUBSPOT_CLIENT_SECRET = Deno.env.get("HUBSPOT_CLIENT_SECRET");
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("Missing Supabase configuration");
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error("Missing backend configuration");
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Get user ID from request body or auth header
-    let userId: string;
-    const body = await req.json().catch(() => ({}));
-    
-    if (body.userId) {
-      userId = body.userId;
-    } else {
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const token = authHeader.replace("Bearer ", "");
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      userId = payload.sub;
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = userData.user.id;
 
     console.log("[hubspot-sync] Starting sync for user:", userId);
 
-    // Get user's HubSpot tokens
     const { data: tokenData, error: tokenError } = await supabase
       .from("hubspot_tokens")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (tokenError || !tokenData) {
-      console.log("[hubspot-sync] No HubSpot connection found");
-      return new Response(JSON.stringify({ error: "HubSpot not connected", connected: false }), {
-        status: 404,
+      return new Response(JSON.stringify({ connected: false, synced: 0, total: 0 }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     let accessToken = tokenData.access_token;
 
-    // Check if token is expired and refresh if needed
+    // Refresh HubSpot token if needed
     const expiresAt = new Date(tokenData.expires_at);
     if (expiresAt < new Date()) {
-      console.log("[hubspot-sync] Token expired, refreshing...");
-      
       if (!HUBSPOT_CLIENT_ID || !HUBSPOT_CLIENT_SECRET) {
         throw new Error("Missing HubSpot credentials for token refresh");
       }
@@ -95,14 +91,11 @@ serve(async (req) => {
       });
 
       if (!refreshResponse.ok) {
-        const errorText = await refreshResponse.text();
-        console.error("[hubspot-sync] Token refresh failed:", errorText);
-        
-        // Token is invalid, delete it
+        const t = await refreshResponse.text();
+        console.error("[hubspot-sync] Refresh failed:", t);
         await supabase.from("hubspot_tokens").delete().eq("user_id", userId);
-        
-        return new Response(JSON.stringify({ error: "HubSpot token expired", connected: false }), {
-          status: 401,
+        return new Response(JSON.stringify({ connected: false, synced: 0, total: 0 }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -117,14 +110,11 @@ serve(async (req) => {
           access_token: newTokenData.access_token,
           refresh_token: newTokenData.refresh_token,
           expires_at: newExpiresAt,
+          scope: newTokenData.scope || null,
         })
         .eq("user_id", userId);
-
-      console.log("[hubspot-sync] Token refreshed successfully");
     }
 
-    // Fetch deals from HubSpot
-    console.log("[hubspot-sync] Fetching deals from HubSpot...");
     const dealsResponse = await fetch(
       "https://api.hubapi.com/crm/v3/objects/deals?limit=100&properties=dealname,amount,dealstage,closedate,createdate,hs_lastmodifieddate",
       {
@@ -132,20 +122,21 @@ serve(async (req) => {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!dealsResponse.ok) {
-      const errorText = await dealsResponse.text();
-      console.error("[hubspot-sync] Failed to fetch deals:", errorText);
-      throw new Error("Failed to fetch deals from HubSpot");
+      const t = await dealsResponse.text();
+      console.error("[hubspot-sync] Fetch deals failed:", t);
+      return new Response(JSON.stringify({ error: "Failed to fetch deals" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const dealsData = await dealsResponse.json();
-    const hubspotDeals: HubSpotDeal[] = dealsData.results || [];
-    console.log("[hubspot-sync] Fetched", hubspotDeals.length, "deals");
+    const dealsJson = await dealsResponse.json();
+    const hubspotDeals: HubSpotDeal[] = dealsJson.results || [];
 
-    // Sync deals to database
     let synced = 0;
     for (const deal of hubspotDeals) {
       const dealRecord = {
@@ -163,28 +154,19 @@ serve(async (req) => {
 
       const { error: upsertError } = await supabase
         .from("deals")
-        .upsert(dealRecord, { 
-          onConflict: "user_id,hubspot_deal_id",
-          ignoreDuplicates: false 
-        });
+        .upsert(dealRecord, { onConflict: "user_id,hubspot_deal_id" });
 
-      if (upsertError) {
-        console.error("[hubspot-sync] Failed to upsert deal:", deal.id, upsertError);
-      } else {
-        synced++;
-      }
+      if (!upsertError) synced++;
+      else console.error("[hubspot-sync] Upsert failed:", deal.id, upsertError);
     }
 
-    console.log("[hubspot-sync] Synced", synced, "deals");
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      synced,
-      total: hubspotDeals.length,
-      connected: true 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ connected: true, synced, total: hubspotDeals.length }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("[hubspot-sync] Error:", err);
     const message = err instanceof Error ? err.message : "Sync failed";

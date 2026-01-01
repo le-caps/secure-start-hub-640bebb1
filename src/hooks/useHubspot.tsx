@@ -66,7 +66,9 @@ export function useHubspot() {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-auth");
+      const { data, error } = await supabase.functions.invoke("hubspot-auth", {
+        headers: { Authorization: `Bearer ${liveSession.access_token}` },
+      });
 
       if (error) throw error;
 
