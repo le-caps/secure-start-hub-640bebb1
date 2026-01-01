@@ -9,17 +9,18 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = true
 
+# We validate auth manually inside these functions (supports non-JWT access tokens)
 [functions.hubspot-auth]
-verify_jwt = true
+verify_jwt = false
 
 [functions.hubspot-callback]
 verify_jwt = false
 
 [functions.hubspot-sync]
-verify_jwt = true
+verify_jwt = false
 
 [functions.hubspot-status]
-verify_jwt = true
+verify_jwt = false
 
 [functions.hubspot-disconnect]
-verify_jwt = true
+verify_jwt = false
