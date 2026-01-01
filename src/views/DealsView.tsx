@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Deal, Priority } from "@/types";
 import { useDemo } from "@/hooks/useDemo";
+import { useHubspot } from "@/hooks/useHubspot";
 import {
   Clock,
   Search,
@@ -18,6 +19,8 @@ import {
   Building,
   Link2,
   ExternalLink,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 
 // ===========================================================
@@ -114,8 +117,10 @@ const getPriorityBarStyle = (priority: Priority) => {
 export const DealsView: React.FC<{
   deals: Deal[];
   onSelectDeal: (dealId: string) => void;
-}> = ({ deals, onSelectDeal }) => {
+  onRefreshDeals?: () => void;
+}> = ({ deals, onSelectDeal, onRefreshDeals }) => {
   const { isDemo } = useDemo();
+  const { connected, loading: hubspotLoading, syncing, connect, sync } = useHubspot();
   const ITEMS_PER_PAGE = 6;
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<"all" | Priority>("all");
@@ -127,6 +132,12 @@ export const DealsView: React.FC<{
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, priorityFilter, sortBy]);
+
+  // Refresh deals after sync
+  const handleSync = async () => {
+    await sync();
+    onRefreshDeals?.();
+  };
 
   // ---------------------------------------------------------
   // FILTER + SORT
@@ -185,8 +196,8 @@ export const DealsView: React.FC<{
   // RENDER
   // ---------------------------------------------------------
   
-  // Show HubSpot connection prompt for logged-in users with no deals
-  if (!isDemo && deals.length === 0) {
+  // Show HubSpot connection prompt for logged-in users with no HubSpot connection
+  if (!isDemo && !connected && !hubspotLoading) {
     return (
       <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
         <div>
@@ -208,12 +219,53 @@ export const DealsView: React.FC<{
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
             Sync your deals from HubSpot to track stalled opportunities and get AI-powered insights.
           </p>
-          <button className="bg-[#ff7a59] hover:bg-[#ff5c35] text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors">
+          <button 
+            onClick={connect}
+            className="bg-[#ff7a59] hover:bg-[#ff5c35] text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors"
+          >
             <ExternalLink size={18} />
             Connect HubSpot
           </button>
           <p className="text-xs text-gray-400 mt-4">
             We only request read access to your deals and properties
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state for connected users with no deals yet
+  if (!isDemo && connected && deals.length === 0) {
+    return (
+      <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+              My Deals
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
+              HubSpot connected — syncing your deals
+            </p>
+          </div>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
+          >
+            {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+            {syncing ? "Syncing..." : "Sync Now"}
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg">
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-full mb-6">
+            <CheckCircle2 size={40} className="text-green-600 dark:text-green-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            HubSpot Connected!
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
+            No deals synced yet. Click "Sync Now" to fetch your deals from HubSpot.
           </p>
         </div>
       </div>
