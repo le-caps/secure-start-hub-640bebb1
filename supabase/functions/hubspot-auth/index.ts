@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,34 +12,59 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  console.log("[hubspot-auth] Request received");
+
   try {
     const HUBSPOT_CLIENT_ID = Deno.env.get("HUBSPOT_CLIENT_ID");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+
+    console.log("[hubspot-auth] HUBSPOT_CLIENT_ID exists:", !!HUBSPOT_CLIENT_ID);
+    console.log("[hubspot-auth] SUPABASE_URL:", SUPABASE_URL);
 
     if (!HUBSPOT_CLIENT_ID) {
-      throw new Error("HUBSPOT_CLIENT_ID not configured");
+      console.error("[hubspot-auth] HUBSPOT_CLIENT_ID not configured");
+      return new Response(JSON.stringify({ error: "HUBSPOT_CLIENT_ID not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Get user from auth header to include in state
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error("[hubspot-auth] Missing Supabase config");
+      return new Response(JSON.stringify({ error: "Missing Supabase configuration" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Get user from auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("[hubspot-auth] No auth header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Extract user ID from JWT for state parameter
-    const token = authHeader.replace("Bearer ", "");
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const userId = payload.sub;
+    // Verify user with Supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
-    if (!userId) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      console.error("[hubspot-auth] User auth failed:", userError);
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userId = user.id;
+    console.log("[hubspot-auth] User verified:", userId);
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/hubspot-callback`;
     const scopes = ["crm.objects.deals.read"];
