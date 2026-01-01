@@ -3,18 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { MOCK_RISK_SETTINGS } from "@/data/mockData";
 
 export type RiskSettings = Tables<"risk_settings">;
 export type UpdateRiskSettingsInput = TablesUpdate<"risk_settings">;
 
 export function useRiskSettings() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const [riskSettings, setRiskSettings] = useState<RiskSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Demo mode: no session = use mock data
+  const isDemo = !session;
+
   const fetchRiskSettings = useCallback(async () => {
+    // Demo mode: return mock data immediately
+    if (isDemo) {
+      setRiskSettings(MOCK_RISK_SETTINGS);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setRiskSettings(null);
       setLoading(false);
@@ -61,13 +72,23 @@ export function useRiskSettings() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isDemo]);
 
   useEffect(() => {
     fetchRiskSettings();
   }, [fetchRiskSettings]);
 
   const updateRiskSettings = async (input: UpdateRiskSettingsInput): Promise<RiskSettings | null> => {
+    // Block in demo mode
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour sauvegarder vos paramètres de risque" 
+      });
+      return null;
+    }
+
     if (!user || !riskSettings) return null;
 
     try {
@@ -96,6 +117,7 @@ export function useRiskSettings() {
     riskSettings,
     loading,
     error,
+    isDemo,
     refetch: fetchRiskSettings,
     updateRiskSettings,
   };
