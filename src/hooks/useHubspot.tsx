@@ -24,9 +24,19 @@ export function useHubspot() {
       return;
     }
 
+    const { data: { session: liveSession } } = await supabase.auth.getSession();
+    const token = liveSession?.access_token || session.access_token;
+
+    if (!token) {
+      console.error("[useHubspot] No access token available for status check");
+      setStatus({ connected: false });
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke("hubspot-status", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       // Even if there's an error, default to not connected
@@ -49,15 +59,14 @@ export function useHubspot() {
   }, [checkStatus]);
 
   const connect = async () => {
-    if (!session) {
+    const { data: { session: liveSession } } = await supabase.auth.getSession();
+    if (!liveSession) {
       toast({ variant: "destructive", title: "Please sign in first" });
       return;
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-auth", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const { data, error } = await supabase.functions.invoke("hubspot-auth");
 
       if (error) throw error;
 
@@ -70,8 +79,6 @@ export function useHubspot() {
       const anyErr = err as any;
       let message = anyErr instanceof Error ? anyErr.message : "Failed to start HubSpot connection";
 
-      // Supabase Functions errors often hide the real response body.
-      // Try to extract it so we can debug.
       try {
         const status = anyErr?.context?.status;
         if (typeof anyErr?.context?.text === "function") {
@@ -99,9 +106,17 @@ export function useHubspot() {
     const confirmed = window.confirm("Disconnect HubSpot? Your synced deals will remain but won't update.");
     if (!confirmed) return;
 
+    const { data: { session: liveSession } } = await supabase.auth.getSession();
+    const token = liveSession?.access_token || session.access_token;
+
+    if (!token) {
+      toast({ variant: "destructive", title: "Session expired", description: "Please sign in again." });
+      return;
+    }
+
     try {
       const { error } = await supabase.functions.invoke("hubspot-disconnect", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) throw error;
@@ -117,19 +132,27 @@ export function useHubspot() {
   const sync = async () => {
     if (!session || !status.connected) return;
 
+    const { data: { session: liveSession } } = await supabase.auth.getSession();
+    const token = liveSession?.access_token || session.access_token;
+
+    if (!token) {
+      toast({ variant: "destructive", title: "Session expired", description: "Please sign in again." });
+      return;
+    }
+
     setSyncing(true);
     try {
       const { data, error } = await supabase.functions.invoke("hubspot-sync", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       if (error) throw error;
-      
-      toast({ 
-        title: "Sync complete", 
-        description: `Synced ${data.synced} deals from HubSpot` 
+
+      toast({
+        title: "Sync complete",
+        description: `Synced ${data.synced} deals from HubSpot`,
       });
-      
+
       // Refresh status
       await checkStatus();
     } catch (err) {
