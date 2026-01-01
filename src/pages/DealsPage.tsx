@@ -15,6 +15,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,7 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DEAL_STAGES, getRiskLevel } from "@/data/mockData";
+import { getRiskLevel } from "@/data/mockData";
+import { getStageInfo, calculateDaysBetween } from "@/lib/stageFormatter";
 
 function formatCurrency(amount: number | null): string {
   if (amount === null) return "—";
@@ -51,34 +54,62 @@ function DealRow({ deal, onEdit, onDelete }: DealRowProps) {
   const metadata = deal.metadata as Record<string, unknown> | null;
   const riskScore = (metadata?.riskScore as number) ?? 50;
   const riskLevel = getRiskLevel(riskScore);
-  const stage = DEAL_STAGES[deal.stage as keyof typeof DEAL_STAGES] ?? DEAL_STAGES.new;
+  const stageInfo = getStageInfo(deal.stage);
+  
+  // Get HubSpot data from metadata
+  const company = (metadata?.company as string) ?? "—";
+  const contact = (metadata?.contact as string) ?? "—";
+  const nextStep = (metadata?.nextStep as string) ?? null;
+  const daysInStage = (metadata?.daysInStage as number) ?? calculateDaysBetween(deal.created_at);
+  const daysInactive = (metadata?.daysInactive as number) ?? calculateDaysBetween(deal.updated_at);
 
   return (
     <tr className="border-b hover:bg-muted/50">
       <td className="p-4">
         <div>
           <p className="font-medium">{deal.name}</p>
-          <p className="text-sm text-muted-foreground">
-            {(metadata?.company as string) ?? "—"}
-          </p>
+          <p className="text-sm text-muted-foreground">{company}</p>
+          {contact !== "—" && (
+            <p className="text-xs text-muted-foreground">{contact}</p>
+          )}
         </div>
       </td>
       <td className="p-4 text-right font-medium">
         {formatCurrency(deal.amount)}
       </td>
       <td className="p-4">
-        <Badge className={`${stage.color} text-white`}>
-          {stage.label}
+        <Badge className={`${stageInfo.color} text-white`}>
+          {stageInfo.label}
         </Badge>
+      </td>
+      <td className="p-4">
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Clock className="h-3 w-3" />
+          <span>{daysInStage}j</span>
+        </div>
+      </td>
+      <td className="p-4">
+        <div className="flex items-center gap-1 text-sm">
+          <Calendar className="h-3 w-3 text-muted-foreground" />
+          <span className={daysInactive > 7 ? "text-amber-600" : "text-muted-foreground"}>
+            {daysInactive}j
+          </span>
+        </div>
+      </td>
+      <td className="p-4">
+        {nextStep ? (
+          <span className="text-sm text-muted-foreground truncate max-w-[150px] block">
+            {nextStep}
+          </span>
+        ) : (
+          <span className="text-sm text-muted-foreground/50">—</span>
+        )}
       </td>
       <td className="p-4">
         <div className={`flex items-center gap-1 ${riskLevel.color}`}>
           <AlertTriangle className="h-4 w-4" />
           <span>{riskScore}%</span>
         </div>
-      </td>
-      <td className="p-4 text-muted-foreground text-sm">
-        {formatDate(deal.updated_at)}
       </td>
       <td className="p-4">
         <DropdownMenu>
@@ -140,12 +171,18 @@ export function DealsPage() {
     await deleteDeal(deal.id);
   };
 
-  const filteredDeals = deals.filter((deal) =>
-    deal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ((deal.metadata as Record<string, unknown> | null)?.company as string ?? "")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
+  const filteredDeals = deals.filter((deal) => {
+    const metadata = deal.metadata as Record<string, unknown> | null;
+    const company = (metadata?.company as string) ?? "";
+    const contact = (metadata?.contact as string) ?? "";
+    const query = searchQuery.toLowerCase();
+    
+    return (
+      deal.name.toLowerCase().includes(query) ||
+      company.toLowerCase().includes(query) ||
+      contact.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="p-6 space-y-6">
@@ -207,38 +244,46 @@ export function DealsPage() {
               )}
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">
-                    Deal
-                  </th>
-                  <th className="p-4 text-right text-sm font-medium text-muted-foreground">
-                    Montant
-                  </th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">
-                    Stage
-                  </th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">
-                    Risque
-                  </th>
-                  <th className="p-4 text-left text-sm font-medium text-muted-foreground">
-                    Mis à jour
-                  </th>
-                  <th className="p-4 w-12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDeals.map((deal) => (
-                  <DealRow
-                    key={deal.id}
-                    deal={deal}
-                    onEdit={handleEditDeal}
-                    onDelete={handleDeleteDeal}
-                  />
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      Deal
+                    </th>
+                    <th className="p-4 text-right text-sm font-medium text-muted-foreground">
+                      Montant
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      Stage
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      En stage
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      Inactivité
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      Next Step
+                    </th>
+                    <th className="p-4 text-left text-sm font-medium text-muted-foreground">
+                      Risque
+                    </th>
+                    <th className="p-4 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDeals.map((deal) => (
+                    <DealRow
+                      key={deal.id}
+                      deal={deal}
+                      onEdit={handleEditDeal}
+                      onDelete={handleDeleteDeal}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -15,6 +15,35 @@ interface HubSpotDeal {
     closedate?: string;
     createdate?: string;
     hs_lastmodifieddate?: string;
+    notes_last_updated?: string;
+    hs_next_step?: string;
+    description?: string;
+    hs_deal_stage_probability?: string;
+    days_to_close?: string;
+    hs_time_in_current_dealstage?: string;
+  };
+  associations?: {
+    companies?: { results: Array<{ id: string }> };
+    contacts?: { results: Array<{ id: string }> };
+  };
+}
+
+interface HubSpotCompany {
+  id: string;
+  properties: {
+    name?: string;
+    domain?: string;
+    industry?: string;
+  };
+}
+
+interface HubSpotContact {
+  id: string;
+  properties: {
+    firstname?: string;
+    lastname?: string;
+    email?: string;
+    phone?: string;
   };
 }
 
@@ -115,15 +144,32 @@ serve(async (req) => {
         .eq("user_id", userId);
     }
 
-    const dealsResponse = await fetch(
-      "https://api.hubapi.com/crm/v3/objects/deals?limit=100&properties=dealname,amount,dealstage,closedate,createdate,hs_lastmodifieddate",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
+    // Fetch deals with associations
+    const dealProperties = [
+      "dealname",
+      "amount",
+      "dealstage",
+      "closedate",
+      "createdate",
+      "hs_lastmodifieddate",
+      "notes_last_updated",
+      "hs_next_step",
+      "description",
+      "hs_deal_stage_probability",
+      "days_to_close",
+      "hs_time_in_current_dealstage",
+    ].join(",");
+
+    const dealsUrl = `https://api.hubapi.com/crm/v3/objects/deals?limit=100&properties=${dealProperties}&associations=companies,contacts`;
+    
+    console.log("[hubspot-sync] Fetching deals from:", dealsUrl);
+    
+    const dealsResponse = await fetch(dealsUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     if (!dealsResponse.ok) {
       const t = await dealsResponse.text();
@@ -137,8 +183,113 @@ serve(async (req) => {
     const dealsJson = await dealsResponse.json();
     const hubspotDeals: HubSpotDeal[] = dealsJson.results || [];
 
+    console.log("[hubspot-sync] Found", hubspotDeals.length, "deals");
+
+    // Collect all company and contact IDs
+    const companyIds = new Set<string>();
+    const contactIds = new Set<string>();
+
+    for (const deal of hubspotDeals) {
+      const companies = deal.associations?.companies?.results || [];
+      const contacts = deal.associations?.contacts?.results || [];
+      
+      companies.forEach((c) => companyIds.add(c.id));
+      contacts.forEach((c) => contactIds.add(c.id));
+    }
+
+    // Fetch companies in batch
+    const companiesMap = new Map<string, HubSpotCompany>();
+    if (companyIds.size > 0) {
+      const companyIdsList = Array.from(companyIds).slice(0, 100); // Limit to 100
+      const companiesUrl = `https://api.hubapi.com/crm/v3/objects/companies/batch/read`;
+      
+      try {
+        const companiesResponse = await fetch(companiesUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            properties: ["name", "domain", "industry"],
+            inputs: companyIdsList.map((id) => ({ id })),
+          }),
+        });
+
+        if (companiesResponse.ok) {
+          const companiesJson = await companiesResponse.json();
+          for (const company of companiesJson.results || []) {
+            companiesMap.set(company.id, company);
+          }
+          console.log("[hubspot-sync] Fetched", companiesMap.size, "companies");
+        }
+      } catch (e) {
+        console.error("[hubspot-sync] Error fetching companies:", e);
+      }
+    }
+
+    // Fetch contacts in batch
+    const contactsMap = new Map<string, HubSpotContact>();
+    if (contactIds.size > 0) {
+      const contactIdsList = Array.from(contactIds).slice(0, 100); // Limit to 100
+      const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts/batch/read`;
+      
+      try {
+        const contactsResponse = await fetch(contactsUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            properties: ["firstname", "lastname", "email", "phone"],
+            inputs: contactIdsList.map((id) => ({ id })),
+          }),
+        });
+
+        if (contactsResponse.ok) {
+          const contactsJson = await contactsResponse.json();
+          for (const contact of contactsJson.results || []) {
+            contactsMap.set(contact.id, contact);
+          }
+          console.log("[hubspot-sync] Fetched", contactsMap.size, "contacts");
+        }
+      } catch (e) {
+        console.error("[hubspot-sync] Error fetching contacts:", e);
+      }
+    }
+
+    // Upsert deals
     let synced = 0;
     for (const deal of hubspotDeals) {
+      // Get associated company
+      const companyId = deal.associations?.companies?.results?.[0]?.id;
+      const company = companyId ? companiesMap.get(companyId) : null;
+      
+      // Get associated contact
+      const contactId = deal.associations?.contacts?.results?.[0]?.id;
+      const contact = contactId ? contactsMap.get(contactId) : null;
+      
+      // Calculate days in stage (HubSpot provides this in milliseconds)
+      const timeInStageMs = deal.properties.hs_time_in_current_dealstage 
+        ? parseInt(deal.properties.hs_time_in_current_dealstage) 
+        : 0;
+      const daysInStage = Math.floor(timeInStageMs / (1000 * 60 * 60 * 24));
+      
+      // Calculate days inactive (since last modified)
+      const lastModified = deal.properties.hs_lastmodifieddate 
+        ? new Date(deal.properties.hs_lastmodifieddate)
+        : null;
+      const daysInactive = lastModified 
+        ? Math.floor((Date.now() - lastModified.getTime()) / (1000 * 60 * 60 * 24))
+        : 0;
+
+      const contactName = contact?.properties
+        ? [contact.properties.firstname, contact.properties.lastname]
+            .filter(Boolean)
+            .join(" ") || null
+        : null;
+
       const dealRecord = {
         user_id: userId,
         hubspot_deal_id: deal.id,
@@ -146,9 +297,32 @@ serve(async (req) => {
         amount: deal.properties.amount ? parseFloat(deal.properties.amount) : null,
         stage: deal.properties.dealstage || "unknown",
         metadata: {
-          closedate: deal.properties.closedate,
-          createdate: deal.properties.createdate,
-          hs_lastmodifieddate: deal.properties.hs_lastmodifieddate,
+          // Company info
+          company: company?.properties?.name || null,
+          companyDomain: company?.properties?.domain || null,
+          companyIndustry: company?.properties?.industry || null,
+          // Contact info
+          contact: contactName,
+          contactEmail: contact?.properties?.email || null,
+          contactPhone: contact?.properties?.phone || null,
+          // Deal dates
+          closedate: deal.properties.closedate || null,
+          createdate: deal.properties.createdate || null,
+          lastModifiedDate: deal.properties.hs_lastmodifieddate || null,
+          // Deal progress
+          nextStep: deal.properties.hs_next_step || null,
+          description: deal.properties.description || null,
+          probability: deal.properties.hs_deal_stage_probability 
+            ? parseFloat(deal.properties.hs_deal_stage_probability)
+            : null,
+          // Calculated fields
+          daysInStage,
+          daysInactive,
+          daysToClose: deal.properties.days_to_close 
+            ? parseInt(deal.properties.days_to_close) 
+            : null,
+          // Risk score calculated based on inactivity and stage
+          riskScore: calculateRiskScore(daysInactive, daysInStage, deal.properties.dealstage),
         },
       };
 
@@ -159,6 +333,14 @@ serve(async (req) => {
       if (!upsertError) synced++;
       else console.error("[hubspot-sync] Upsert failed:", deal.id, upsertError);
     }
+
+    // Update last sync time in hubspot_tokens
+    await supabase
+      .from("hubspot_tokens")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("user_id", userId);
+
+    console.log("[hubspot-sync] Synced", synced, "of", hubspotDeals.length, "deals");
 
     return new Response(
       JSON.stringify({ connected: true, synced, total: hubspotDeals.length }),
@@ -176,3 +358,40 @@ serve(async (req) => {
     });
   }
 });
+
+/**
+ * Calculate a risk score based on deal metrics
+ * Higher score = higher risk
+ */
+function calculateRiskScore(
+  daysInactive: number,
+  daysInStage: number,
+  stage: string | undefined
+): number {
+  let score = 0;
+
+  // Inactivity penalty (max 40 points)
+  if (daysInactive > 30) score += 40;
+  else if (daysInactive > 14) score += 30;
+  else if (daysInactive > 7) score += 20;
+  else if (daysInactive > 3) score += 10;
+
+  // Days in stage penalty (max 30 points)
+  if (daysInStage > 60) score += 30;
+  else if (daysInStage > 30) score += 20;
+  else if (daysInStage > 14) score += 10;
+
+  // Stage-based risk (max 30 points)
+  const riskyStages = ["closedlost", "closed_lost"];
+  const staleStages = ["qualified", "qualifiedtobuy", "appointmentscheduled"];
+  
+  const normalizedStage = (stage || "").toLowerCase().replace(/[_-]/g, "");
+  
+  if (riskyStages.some(s => normalizedStage.includes(s.replace(/[_-]/g, "")))) {
+    score += 30;
+  } else if (staleStages.some(s => normalizedStage.includes(s.replace(/[_-]/g, "")))) {
+    score += 15;
+  }
+
+  return Math.min(score, 100);
+}
