@@ -10,7 +10,7 @@ interface HubspotStatus {
   scope?: string;
 }
 
-export function useHubspot() {
+export function useHubspot(onSyncComplete?: () => void) {
   const { session } = useAuth();
   const { toast } = useToast();
   const [status, setStatus] = useState<HubspotStatus>({ connected: false });
@@ -155,8 +155,9 @@ export function useHubspot() {
         description: `Synced ${data.synced} deals from HubSpot`,
       });
 
-      // Refresh status
+      // Refresh status and notify parent to refetch deals
       await checkStatus();
+      onSyncComplete?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Sync failed";
       toast({ variant: "destructive", title: "Error", description: message });

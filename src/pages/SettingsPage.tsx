@@ -3,6 +3,7 @@ import { useAgentPreferences } from "@/hooks/useAgentPreferences";
 import { useAuth } from "@/hooks/useAuth";
 import { useDemo } from "@/hooks/useDemo";
 import { useHubspot } from "@/hooks/useHubspot";
+import { useDeals } from "@/hooks/useDeals";
 import { DemoGateModal } from "@/components/DemoGateModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,8 @@ export function SettingsPage() {
   const { preferences, loading, updatePreferences, isDemo } = useAgentPreferences();
   const { user, signOut } = useAuth();
   const { requireAuth } = useDemo();
-  const hubspot = useHubspot();
+  const { refetch: refetchDeals } = useDeals();
+  const hubspot = useHubspot(refetchDeals);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   // Local state
