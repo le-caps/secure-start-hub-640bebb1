@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Deal, UserProfile } from "@/types";
 import { SliderControl } from "@/components/SliderControl";
+import { formatStageName } from "@/lib/stageFormatter";
 
 interface RiskEngineViewProps {
   profile: UserProfile;
@@ -75,6 +76,12 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
   };
 
   const riskyStages = local.riskyStages || [];
+
+  // Extract unique stages from the user's actual deals
+  const uniqueStages = useMemo(() => {
+    const stages = deals.map((d) => d.stage).filter(Boolean);
+    return [...new Set(stages)];
+  }, [deals]);
 
   // ---------- BUTTON STYLE ----------
   const saveBtnClasses = (isSaved: boolean) =>
@@ -230,46 +237,46 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
           </div>
         </div>
 
-        {/* RISKY STAGES */}
+        {/* RISKY STAGES - based on user's actual deal stages */}
         <div className="pt-4 border-t border-gray-200 dark:border-zinc-800">
           <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
             Risky Deal Stages
           </h3>
-          <div className="flex flex-wrap">
-            {[
-              "Qualification",
-              "Discovery",
-              "Demo Scheduled",
-              "Proposal Sent",
-              "Negotiation",
-              "Contract Sent",
-              "Legal Review",
-              "Procurement",
-            ].map((stage) => {
-              const key = stage.toLowerCase();
-              const active = riskyStages.includes(key);
-              return (
-                <button
-                  key={stage}
-                  onClick={() =>
-                    update(
-                      "riskyStages",
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Select stages that should increase the risk score of your deals.
+          </p>
+          {uniqueStages.length === 0 ? (
+            <p className="text-sm text-gray-400 italic">
+              No stages detected yet. Sync your HubSpot deals to see your stages here.
+            </p>
+          ) : (
+            <div className="flex flex-wrap">
+              {uniqueStages.map((stage) => {
+                const key = stage.toLowerCase();
+                const active = riskyStages.includes(key);
+                return (
+                  <button
+                    key={stage}
+                    onClick={() =>
+                      update(
+                        "riskyStages",
+                        active
+                          ? riskyStages.filter((s) => s !== key)
+                          : [...riskyStages, key]
+                      )
+                    }
+                    className={`px-3 py-1.5 text-sm rounded-md border mr-2 mb-2 transition-colors ${
                       active
-                        ? riskyStages.filter((s) => s !== key)
-                        : [...riskyStages, key]
-                    )
-                  }
-                  className={`px-3 py-1.5 text-sm rounded-md border mr-2 mb-2 transition-colors ${
-                    active
-                      ? "bg-red-100 border-red-300 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
-                      : "bg-gray-50 border-gray-300 text-gray-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
-                  }`}
-                >
-                  {stage}
-                </button>
-              );
-            })}
-          </div>
+                        ? "bg-red-100 border-red-300 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
+                        : "bg-gray-50 border-gray-300 text-gray-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
+                    }`}
+                  >
+                    {formatStageName(stage)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* RISK DISTRIBUTION */}

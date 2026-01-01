@@ -61,20 +61,35 @@ const MainApp: React.FC = () => {
     // Real deals from database - map to app Deal type
     return dbDeals.map((dbDeal) => {
       const metadata = dbDeal.metadata as Record<string, any> || {};
+      
+      // Support both naming conventions from hubspot-sync (company vs company_name)
+      const companyName = metadata.company || metadata.company_name || 'Unknown Company';
+      const contactName = metadata.contact || metadata.contact_name || 'Unknown Contact';
+      const daysInStage = metadata.daysInStage ?? metadata.days_in_stage ?? 0;
+      const daysInactive = metadata.daysInactive ?? metadata.days_inactive ?? 0;
+      const nextStep = metadata.nextStep || metadata.next_step || '';
+      const lastActivity = metadata.lastModifiedDate || metadata.last_activity || dbDeal.updated_at;
+      
+      // Calculate priority based on risk score or inactivity
+      const riskScore = metadata.riskScore ?? 50;
+      let priority: 'high' | 'medium' | 'low' = 'medium';
+      if (riskScore >= 70 || daysInactive > 14) priority = 'high';
+      else if (riskScore < 40 && daysInactive <= 7) priority = 'low';
+      
       const appDeal: Deal = {
         id: dbDeal.id,
         name: dbDeal.name,
         amount: dbDeal.amount || 0,
         stage: dbDeal.stage || 'unknown',
         currency: 'USD',
-        companyName: metadata.company_name || 'Unknown Company',
-        contactName: metadata.contact_name || 'Unknown Contact',
-        daysInStage: metadata.days_in_stage || 0,
-        daysInactive: metadata.days_inactive || 0,
-        priority: metadata.priority || 'medium',
-        lastActivityDate: metadata.last_activity || dbDeal.updated_at,
-        nextStep: metadata.next_step || '',
-        notes: metadata.notes || '',
+        companyName,
+        contactName,
+        daysInStage,
+        daysInactive,
+        priority,
+        lastActivityDate: lastActivity,
+        nextStep,
+        notes: metadata.notes || metadata.description || '',
         crmUrl: dbDeal.hubspot_deal_id 
           ? `https://app.hubspot.com/contacts/deals/${dbDeal.hubspot_deal_id}` 
           : '',

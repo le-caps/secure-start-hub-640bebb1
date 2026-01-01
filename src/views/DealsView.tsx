@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Deal, Priority } from "@/types";
 import { useDemo } from "@/hooks/useDemo";
 import { useHubspot } from "@/hooks/useHubspot";
+import { formatStageName } from "@/lib/stageFormatter";
 import {
   Clock,
   Search,
@@ -21,6 +22,7 @@ import {
   ExternalLink,
   RefreshCw,
   Loader2,
+  Calendar,
 } from "lucide-react";
 
 // ===========================================================
@@ -398,8 +400,22 @@ export const DealsView: React.FC<{
                         <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
                           {getStageIcon(deal.stage)}
                           <span className="truncate font-medium">
-                            {deal.stage}
+                            {formatStageName(deal.stage)}
                           </span>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-zinc-700" />
+
+                      {/* Days in Stage */}
+                      <div className="flex-1 flex flex-col gap-1 sm:px-4">
+                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                          Days in Stage
+                        </span>
+                        <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
+                          <Calendar size={15} strokeWidth={1.5} />
+                          {deal.daysInStage} days
                         </div>
                       </div>
 
