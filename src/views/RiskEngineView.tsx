@@ -150,7 +150,7 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
       {/* HEADER */}
       <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             Deal Risk Engine
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">

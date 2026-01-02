@@ -5,7 +5,7 @@ export const HelpView: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in pb-20 max-w-3xl mx-auto px-4 w-full">
       <div className="border-b border-gray-200 dark:border-zinc-800 pb-6">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
           Help & Support
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">

@@ -74,7 +74,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
   const highPriorityDeals = deals.filter(d => d.priority === 'high');
 
   const StatCard = ({ title, value, sub, icon: Icon, iconColor }: any) => (
-    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg flex flex-col justify-between h-full shadow-sm">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg flex flex-col justify-between h-full shadow-md hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
         <Icon size={18} className={iconColor} strokeWidth={2} />
@@ -90,7 +90,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
     <div className="space-y-8 animate-fade-in pb-24 max-w-7xl mx-auto px-6 w-full">
       <div className="flex items-center gap-3 mb-2">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Pipeline Insights</h2>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pipeline Insights</h2>
         </div>
       </div>
      
@@ -123,7 +123,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Chart 1: Value by Stage */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-md">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-6">Revenue at Risk by Stage</h3>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +152,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
         </div>
 
         {/* Chart 2: Bottleneck Analysis */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-md">
            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-6">Bottleneck Analysis (Avg. Inactive Days)</h3>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">

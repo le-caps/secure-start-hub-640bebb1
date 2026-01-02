@@ -201,7 +201,7 @@ export const DealsView: React.FC<{
     return (
       <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             My Deals
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
@@ -220,7 +220,7 @@ export const DealsView: React.FC<{
     return (
       <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             My Deals
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
@@ -259,7 +259,7 @@ export const DealsView: React.FC<{
       <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
               My Deals
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
@@ -377,7 +377,7 @@ export const DealsView: React.FC<{
             return (
               <div
                 key={deal.id}
-                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 relative overflow-hidden pl-5 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 relative overflow-hidden pl-5 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
               >
                 {/* Priority Colored Bar */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${barStyle}`} />

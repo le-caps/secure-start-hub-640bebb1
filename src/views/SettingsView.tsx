@@ -179,7 +179,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-20 px-4">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight mb-8">Settings</h2>
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight mb-8">Settings</h2>
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Settings Sidebar */}
