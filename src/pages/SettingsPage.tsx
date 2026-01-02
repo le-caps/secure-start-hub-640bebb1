@@ -112,10 +112,10 @@ export function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Settings className="h-6 w-6" />
-          Paramètres
+          Settings
         </h1>
         <p className="text-muted-foreground">
-          Gérez vos préférences et intégrations
+          Manage your preferences and integrations
         </p>
       </div>
 
@@ -124,16 +124,16 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Profil
+            Profile
           </CardTitle>
           <CardDescription>
-            Informations de votre compte
+            Your account information
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {isDemo ? (
             <div className="text-muted-foreground">
-              Connectez-vous pour voir vos informations de profil
+              Sign in to view your profile information
             </div>
           ) : (
             <>

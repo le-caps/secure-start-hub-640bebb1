@@ -72,14 +72,14 @@ export default function Dashboard() {
         setError(fnError.message);
         toast({
           variant: "destructive",
-          title: "Erreur",
+          title: "Error",
           description: fnError.message,
         });
       } else {
         setWhoamiData(data);
         toast({
-          title: "Test réussi",
-          description: "Vérification de sécurité effectuée",
+          title: "Test successful",
+          description: "Security verification completed",
         });
       }
     } catch (err) {
@@ -87,7 +87,7 @@ export default function Dashboard() {
       setError(message);
       toast({
         variant: "destructive",
-        title: "Erreur",
+        title: "Error",
         description: message,
       });
     } finally {
@@ -189,7 +189,7 @@ export default function Dashboard() {
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-destructive">
                   <XCircle className="h-5 w-5" />
-                  <span className="font-medium">Erreur</span>
+                  <span className="font-medium">Error</span>
                 </div>
                 <p className="text-sm mt-2">{error}</p>
               </div>

@@ -22,7 +22,7 @@ const navItems = [
   { to: "/risk-engine", icon: Shield, label: "Risk Engine" },
   { to: "/insights", icon: Lightbulb, label: "Insights" },
   { to: "/agent", icon: Bot, label: "AI Agent" },
-  { to: "/settings", icon: Settings, label: "Paramètres" },
+  { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar() {
@@ -89,7 +89,7 @@ export function Sidebar() {
               </div>
               <div className="flex-1 truncate">
                 <p className="text-sm font-medium truncate">{user.email}</p>
-                <p className="text-xs text-muted-foreground">Connecté</p>
+                <p className="text-xs text-muted-foreground">Connected</p>
               </div>
             </div>
             <Button
@@ -99,7 +99,7 @@ export function Sidebar() {
               onClick={handleAuthAction}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Déconnexion
+              Sign Out
             </Button>
           </div>
         ) : (
@@ -108,7 +108,7 @@ export function Sidebar() {
             onClick={handleAuthAction}
           >
             <LogIn className="h-4 w-4 mr-2" />
-            Se connecter
+            Sign In
           </Button>
         )}
       </div>
