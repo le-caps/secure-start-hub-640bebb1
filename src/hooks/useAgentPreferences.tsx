@@ -67,7 +67,7 @@ export function useAgentPreferences() {
         setPreferences(data);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur chargement préférences";
+      const message = err instanceof Error ? err.message : "Error loading preferences";
       setError(message);
       console.error("useAgentPreferences: fetch error", err);
     } finally {
@@ -82,10 +82,10 @@ export function useAgentPreferences() {
   const updatePreferences = async (input: UpdateAgentPreferencesInput): Promise<AgentPreferences | null> => {
     // Block in demo mode
     if (isDemo) {
-      toast({ 
-        variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour sauvegarder vos préférences" 
+      toast({
+        variant: "destructive",
+        title: "Demo mode",
+        description: "Sign in to save your preferences"
       });
       return null;
     }
@@ -104,11 +104,11 @@ export function useAgentPreferences() {
       if (updateError) throw updateError;
 
       setPreferences(data);
-      toast({ title: "Préférences mises à jour" });
+      toast({ title: "Preferences updated" });
       return data;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur mise à jour";
-      toast({ variant: "destructive", title: "Erreur", description: message });
+      const message = err instanceof Error ? err.message : "Error updating preferences";
+      toast({ variant: "destructive", title: "Error", description: message });
       console.error("useAgentPreferences: update error", err);
       return null;
     }

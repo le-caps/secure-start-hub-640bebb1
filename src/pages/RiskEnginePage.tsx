@@ -54,7 +54,7 @@ export function RiskEnginePage() {
   }, [riskSettings]);
 
   const handleSave = async () => {
-    if (requireAuth("Sauvegarder les paramètres de risque")) {
+    if (requireAuth("Save risk settings")) {
       setShowDemoModal(true);
       return;
     }
@@ -116,7 +116,7 @@ export function RiskEnginePage() {
             Risk Engine
           </h1>
           <p className="text-muted-foreground">
-            Analysez et configurez vos paramètres de risque
+            Analyze and configure your risk settings
           </p>
         </div>
       </div>
@@ -127,7 +127,7 @@ export function RiskEnginePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-red-500" />
-              Risque Élevé
+              High Risk
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -137,7 +137,7 @@ export function RiskEnginePage() {
               <>
                 <div className="text-2xl font-bold text-red-600">{highRiskDeals.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {formatCurrency(highRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} en jeu
+                  {formatCurrency(highRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} at stake
                 </p>
               </>
             )}
@@ -148,7 +148,7 @@ export function RiskEnginePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-yellow-500" />
-              Risque Moyen
+              Medium Risk
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -158,7 +158,7 @@ export function RiskEnginePage() {
               <>
                 <div className="text-2xl font-bold text-yellow-600">{mediumRiskDeals.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {formatCurrency(mediumRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} en jeu
+                  {formatCurrency(mediumRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} at stake
                 </p>
               </>
             )}
@@ -169,7 +169,7 @@ export function RiskEnginePage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-green-500" />
-              Risque Faible
+              Low Risk
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -179,7 +179,7 @@ export function RiskEnginePage() {
               <>
                 <div className="text-2xl font-bold text-green-600">{lowRiskDeals.length}</div>
                 <p className="text-xs text-muted-foreground">
-                  {formatCurrency(lowRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} en jeu
+                  {formatCurrency(lowRiskDeals.reduce((sum, d) => sum + (d.amount ?? 0), 0))} at stake
                 </p>
               </>
             )}
@@ -190,9 +190,9 @@ export function RiskEnginePage() {
       {/* Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Paramètres de risque</CardTitle>
+          <CardTitle>Risk Settings</CardTitle>
           <CardDescription>
-            Configurez vos seuils et alertes de risque
+            Configure your risk thresholds and alerts
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
@@ -205,7 +205,7 @@ export function RiskEnginePage() {
             <>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label>Montant max par deal</Label>
+                  <Label>Max amount per deal</Label>
                   <span className="text-lg font-semibold">
                     {formatCurrency(maxAmount)}
                   </span>
@@ -218,13 +218,13 @@ export function RiskEnginePage() {
                   step={10000}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Les deals dépassant ce montant seront signalés comme à risque
+                  Deals exceeding this amount will be flagged as risky
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label>Seuil d'alerte risque</Label>
+                  <Label>Risk alert threshold</Label>
                   <span className={`text-lg font-semibold ${getRiskLevel(alertThreshold).color}`}>
                     {alertThreshold}%
                   </span>
@@ -237,16 +237,16 @@ export function RiskEnginePage() {
                   step={5}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Recevez des alertes pour les deals dépassant ce seuil de risque
+                  Receive alerts for deals exceeding this risk threshold
                 </p>
               </div>
 
               {/* Risky Stages based on user's HubSpot stages */}
               {uniqueStages.length > 0 && (
                 <div className="space-y-4">
-                  <Label>Stages à risque</Label>
+                  <Label>Risky stages</Label>
                   <p className="text-sm text-muted-foreground">
-                    Les deals dans ces stages auront un score de risque plus élevé
+                    Deals in these stages will have a higher risk score
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {uniqueStages.map((stage) => {
@@ -277,7 +277,7 @@ export function RiskEnginePage() {
 
               <Button onClick={handleSave} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
-                Sauvegarder
+                Save
               </Button>
             </>
           )}
@@ -290,10 +290,10 @@ export function RiskEnginePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
               <AlertTriangle className="h-5 w-5" />
-              Deals à surveiller
+              Deals to Watch
             </CardTitle>
             <CardDescription>
-              Ces deals nécessitent une attention particulière
+              These deals require special attention
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -318,11 +318,11 @@ export function RiskEnginePage() {
                     <div className="flex items-center gap-3 shrink-0">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        <span>{deal.daysInStage}j en stage</span>
+                        <span>{deal.daysInStage}d in stage</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>{deal.daysInactive}j inactif</span>
+                        <span>{deal.daysInactive}d inactive</span>
                       </div>
                       <Badge className={`${stageInfo.color} text-white`}>
                         {stageInfo.label}
@@ -339,10 +339,10 @@ export function RiskEnginePage() {
         </Card>
       )}
 
-      <DemoGateModal 
-        open={showDemoModal} 
+      <DemoGateModal
+        open={showDemoModal}
         onOpenChange={setShowDemoModal}
-        action="Sauvegarder les paramètres de risque"
+        action="Save risk settings"
       />
     </div>
   );

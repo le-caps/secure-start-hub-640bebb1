@@ -10,6 +10,43 @@ interface HubspotStatus {
   scope?: string;
 }
 
+/**
+ * Retry helper function with exponential backoff
+ * @param fn - The async function to retry
+ * @param maxRetries - Maximum number of retry attempts (default: 3)
+ * @param baseDelay - Base delay in milliseconds (default: 1000ms)
+ * @returns Promise with the function result
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: any;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      // Don't retry on the last attempt
+      if (attempt === maxRetries) {
+        throw lastError;
+      }
+
+      // Calculate exponential backoff delay: baseDelay * 2^attempt
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`[retryWithBackoff] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`, error);
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
 export function useHubspot(onSyncComplete?: () => void) {
   const { session } = useAuth();
   const { toast } = useToast();
@@ -131,6 +168,11 @@ export function useHubspot(onSyncComplete?: () => void) {
     }
   };
 
+  /**
+   * Syncs deals from HubSpot with automatic retry logic.
+   * Uses exponential backoff (1s, 2s, 4s) for up to 3 retry attempts.
+   * Recovers from network errors and temporary service unavailability.
+   */
   const sync = async () => {
     if (!session || !status.connected) return;
 
@@ -144,15 +186,19 @@ export function useHubspot(onSyncComplete?: () => void) {
 
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("hubspot-sync", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Wrap the sync call with retry logic
+      const result = await retryWithBackoff(async () => {
+        const { data, error } = await supabase.functions.invoke("hubspot-sync", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        return data;
+      }, 3, 1000); // 3 retries with 1s base delay (1s, 2s, 4s)
 
       toast({
         title: "Sync complete",
-        description: `Synced ${data.synced} deals from HubSpot`,
+        description: `Synced ${result.synced} deals from HubSpot`,
       });
 
       // Refresh status and notify parent to refetch deals
@@ -160,7 +206,12 @@ export function useHubspot(onSyncComplete?: () => void) {
       onSyncComplete?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Sync failed";
-      toast({ variant: "destructive", title: "Error", description: message });
+      toast({
+        variant: "destructive",
+        title: "Sync failed after retries",
+        description: message
+      });
+      console.error("[useHubspot] Sync failed after all retries:", err);
     } finally {
       setSyncing(false);
     }

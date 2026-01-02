@@ -57,7 +57,7 @@ export function AgentPage() {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `Je comprends votre question sur "${input}". En mode démo, je ne peux pas effectuer d'analyse réelle. Connectez-vous pour accéder à toutes les fonctionnalités de l'assistant AI, incluant l'analyse de risque en temps réel et les recommandations personnalisées.`,
+        content: `I understand your question about "${input}". In demo mode, I cannot perform real analysis. Sign in to access all AI assistant features, including real-time risk analysis and personalized recommendations.`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);

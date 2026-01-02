@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
@@ -24,6 +24,10 @@ export function useRiskSettings() {
 
   // Demo mode: no session = use mock data
   const isDemo = !session;
+
+  // Performance monitoring: Track last save time to detect excessive updates
+  // Consider adding debouncing if settings are saved more than once per second
+  const lastSaveTime = useRef<number>(0);
 
   const fetchRiskSettings = useCallback(async () => {
     // Demo mode: return mock data immediately
@@ -93,7 +97,7 @@ export function useRiskSettings() {
         });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur chargement paramètres";
+      const message = err instanceof Error ? err.message : "Error loading settings";
       setError(message);
       console.error("useRiskSettings: fetch error", err);
     } finally {
@@ -108,10 +112,10 @@ export function useRiskSettings() {
   const updateRiskSettings = async (input: UpdateRiskSettingsInput): Promise<RiskSettings | null> => {
     // Block in demo mode
     if (isDemo) {
-      toast({ 
-        variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour sauvegarder vos paramètres de risque" 
+      toast({
+        variant: "destructive",
+        title: "Demo mode",
+        description: "Sign in to save your risk settings"
       });
       return null;
     }
@@ -134,28 +138,76 @@ export function useRiskSettings() {
         ...data,
         parsedSettings: parsedSettings || undefined,
       });
-      toast({ title: "Paramètres mis à jour" });
+      toast({ title: "Settings updated" });
       return data;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erreur mise à jour";
-      toast({ variant: "destructive", title: "Erreur", description: message });
+      const message = err instanceof Error ? err.message : "Error updating settings";
+      toast({ variant: "destructive", title: "Error", description: message });
       console.error("useRiskSettings: update error", err);
       return null;
     }
   };
 
-  // Save profile preferences to risk_settings
+  /**
+   * Saves user profile preferences to the risk_settings table in the database.
+   * This function persists Risk Engine configuration settings including risk weights,
+   * thresholds, risky stages, and risk keywords.
+   *
+   * @param profilePrefs - Partial user profile object containing settings to save
+   * @param profilePrefs.stalledThresholdDays - Number of days before a deal is considered stalled
+   * @param profilePrefs.riskWeightAmount - Weight factor for deal amount in risk calculation
+   * @param profilePrefs.riskWeightStage - Weight factor for deal stage in risk calculation
+   * @param profilePrefs.riskWeightInactivity - Weight factor for inactivity in risk calculation
+   * @param profilePrefs.riskWeightNotes - Weight factor for notes/keywords in risk calculation
+   * @param profilePrefs.highValueThreshold - Threshold amount for high-value deals
+   * @param profilePrefs.riskyStages - Array of stage names considered risky
+   * @param profilePrefs.riskKeywords - Array of keywords indicating risk in deal notes
+   *
+   * @returns Promise<boolean> - Returns true if save was successful, false otherwise
+   *
+   * @example
+   * ```typescript
+   * const success = await saveProfilePreferences({
+   *   stalledThresholdDays: 30,
+   *   riskWeightAmount: 0.3,
+   *   riskWeightStage: 0.25,
+   *   highValueThreshold: 50000,
+   *   riskyStages: ['Negotiation', 'Proposal Sent']
+   * });
+   * ```
+   *
+   * @remarks
+   * - Blocked in demo mode - shows toast notification and returns false
+   * - Updates both the `settings` JSON field and `max_deal_amount` column
+   * - Shows success toast notification on completion
+   * - Shows error toast notification on failure
+   * - Updates local state with the saved settings
+   * - **Performance**: Logs warning if called more than once per second
+   * - **Best Practice**: Implement debouncing in UI components that call this function
+   *   to prevent excessive database writes (e.g., on slider changes)
+   */
   const saveProfilePreferences = async (profilePrefs: Partial<UserProfile>): Promise<boolean> => {
     if (isDemo) {
-      toast({ 
-        variant: "destructive", 
-        title: "Mode démo", 
-        description: "Connectez-vous pour sauvegarder vos paramètres" 
+      toast({
+        variant: "destructive",
+        title: "Demo mode",
+        description: "Sign in to save your preferences"
       });
       return false;
     }
 
     if (!user || !riskSettings) return false;
+
+    // Performance monitoring: Warn if saving too frequently
+    const now = Date.now();
+    const timeSinceLastSave = now - lastSaveTime.current;
+    if (lastSaveTime.current > 0 && timeSinceLastSave < 1000) {
+      console.warn(
+        `[useRiskSettings] Settings saved ${timeSinceLastSave}ms after previous save. ` +
+        `Consider implementing debouncing to reduce database load.`
+      );
+    }
+    lastSaveTime.current = now;
 
     const settingsToSave = {
       stalledThresholdDays: profilePrefs.stalledThresholdDays,

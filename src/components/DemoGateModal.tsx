@@ -32,33 +32,33 @@ export function DemoGateModal({ open, onOpenChange, action }: DemoGateModalProps
             <Lock className="h-6 w-6 text-primary" />
           </div>
           <DialogTitle className="text-center">
-            Connectez-vous pour continuer
+            Sign in to continue
           </DialogTitle>
           <DialogDescription className="text-center">
             {action ? (
               <>
-                L'action <span className="font-medium">"{action}"</span> nécessite un compte.
+                The action <span className="font-medium">"{action}"</span> requires an account.
               </>
             ) : (
-              "Cette fonctionnalité nécessite un compte pour sauvegarder vos données."
+              "This feature requires an account to save your data."
             )}
             <br />
             <span className="text-muted-foreground">
-              Créez un compte gratuit pour synchroniser et persister vos données.
+              Create a free account to sync and persist your data.
             </span>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={handleSignIn} className="w-full">
             <LogIn className="mr-2 h-4 w-4" />
-            Se connecter / S'inscrire
+            Sign In / Sign Up
           </Button>
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
             className="w-full"
           >
-            Continuer en mode démo
+            Continue in demo mode
           </Button>
         </DialogFooter>
       </DialogContent>
