@@ -236,11 +236,11 @@ export const DealsView: React.FC<{
             Connect HubSpot
           </h3>
           <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
-            Sync your deals from HubSpot to track stalled opportunities and get AI-powered insights.
+            Connect HubSpot to track your pipeline and identify at-risk deals.
           </p>
-          <button 
+          <button
             onClick={connect}
-            className="bg-[#ff7a59] hover:bg-[#ff5c35] text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors"
+            className="bg-hubspot hover:bg-hubspot-hover text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors"
           >
             <ExternalLink size={18} />
             Connect HubSpot

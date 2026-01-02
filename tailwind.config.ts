@@ -94,6 +94,10 @@ export default {
             border: "hsl(var(--priority-low-border))",
           },
         },
+        hubspot: {
+          DEFAULT: "#ff7a59",
+          hover: "#ff5c35",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

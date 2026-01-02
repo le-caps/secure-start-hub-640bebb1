@@ -25,19 +25,19 @@ export const AgentView: React.FC<AgentViewProps> = ({ preferences, onSave }) => 
   const roles = ['AE', 'BDR', 'Founder', 'CSM', 'VP Sales'];
   
   const toneOptions = [
-    { id: 'friendly', label: 'Friendly', desc: 'Warm and approachable.' },
-    { id: 'direct', label: 'Direct', desc: 'Straight to the point.' },
-    { id: 'professional', label: 'Professional', desc: 'Formal and respectful.' },
-    { id: 'casual', label: 'Casual', desc: 'Relaxed and informal.' },
-    { id: 'challenger', label: 'Challenger', desc: 'Bold and provocative.' },
+    { id: 'friendly', label: 'Friendly', desc: 'Conversational and personable' },
+    { id: 'direct', label: 'Direct', desc: 'Brief and action-focused' },
+    { id: 'professional', label: 'Professional', desc: 'Polished and business-appropriate' },
+    { id: 'casual', label: 'Casual', desc: 'Informal and relaxed' },
+    { id: 'challenger', label: 'Challenger', desc: 'Thought-provoking and strategic' },
   ];
   
   const styleOptions = [
-    { id: 'short', label: 'Short & Punchy', desc: 'Respects time.' },
-    { id: 'detailed', label: 'Detailed', desc: 'Full context recap.' },
-    { id: 'urgent', label: 'Urgent', desc: 'Drive action now.' },
-    { id: 'soft', label: 'Soft Touch', desc: 'Low pressure.' },
-    { id: 'storytelling', label: 'Storytelling', desc: 'Persuasive narrative.' },
+    { id: 'short', label: 'Short & Punchy', desc: 'Concise and time-efficient' },
+    { id: 'detailed', label: 'Detailed', desc: 'Comprehensive with full context' },
+    { id: 'urgent', label: 'Urgent', desc: 'Direct call-to-action focused' },
+    { id: 'soft', label: 'Soft Touch', desc: 'Gentle and low-pressure' },
+    { id: 'storytelling', label: 'Storytelling', desc: 'Narrative-driven approach' },
   ];
 
   return (
@@ -47,7 +47,7 @@ export const AgentView: React.FC<AgentViewProps> = ({ preferences, onSave }) => 
           My AI Agent
         </h2>
         <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
-           Teach Drift how you talk so follow-ups sound just like you.
+          Customize how Drift writes emails to match your communication style.
         </p>
       </div>
 

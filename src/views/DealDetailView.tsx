@@ -361,7 +361,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Generate personalized AI follow-ups — review & edit before sending</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Draft follow-up emails based on deal context</p>
               </div>
             </div>
             
@@ -381,9 +381,9 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 <div className="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-full mb-4">
                   <Sparkles size={28} className="text-blue-500" />
                 </div>
-                <p className="font-medium text-gray-900 dark:text-white mb-1">Ready to draft a personalized follow-up?</p>
+                <p className="font-medium text-gray-900 dark:text-white mb-1">Ready to draft a follow-up email?</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
-                  {"I'll use the deal context, notes, and your preferences to write a tailored email."}
+                  Generates personalized emails using deal data and your preferences.
                 </p>
                 <button onClick={handleGenerate} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2">
                   <Sparkles size={16} />
@@ -408,7 +408,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 </div>
                 <p className="font-medium text-gray-900 dark:text-white mb-1">Logged to CRM</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
-                  The email has been copied and the activity has been logged in your Salesforce instance.
+                  Email copied and activity logged to your CRM.
                 </p>
                 <button onClick={onBack} className="text-blue-600 hover:underline text-sm font-medium">
                   Back to Deals
