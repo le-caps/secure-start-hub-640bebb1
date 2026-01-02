@@ -30,7 +30,7 @@ export const HelpView: React.FC = () => {
                 How does the AI follow-up work?
               </h4>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Drift analyzes your deal context, notes, and preferences to generate personalized follow-up emails that match your tone and style.
+                Uses deal data and your preferences to draft follow-up emails in your communication style.
               </p>
             </div>
             <div>
@@ -46,7 +46,7 @@ export const HelpView: React.FC = () => {
                 Can I integrate with my CRM?
               </h4>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Yes! Drift integrates with major CRMs like Salesforce and HubSpot. Contact our team to set up your integration.
+                Yes. Drift currently supports HubSpot integration with more CRMs coming soon.
               </p>
             </div>
           </div>
