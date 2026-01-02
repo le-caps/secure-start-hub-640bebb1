@@ -4,7 +4,6 @@ import { useDemo } from "@/hooks/useDemo";
 import { useHubspot } from "@/hooks/useHubspot";
 import { formatStageName } from "@/lib/stageFormatter";
 import {
-  Clock,
   Search,
   SlidersHorizontal,
   ArrowDownWideNarrow,
@@ -22,7 +21,6 @@ import {
   ExternalLink,
   RefreshCw,
   Loader2,
-  Calendar,
 } from "lucide-react";
 
 // ===========================================================
@@ -198,6 +196,25 @@ export const DealsView: React.FC<{
   // RENDER
   // ---------------------------------------------------------
   
+  // Show loading state while checking HubSpot status
+  if (!isDemo && hubspotLoading) {
+    return (
+      <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+            My Deals
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
+            Loading...
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 size={32} className="animate-spin text-blue-500" />
+        </div>
+      </div>
+    );
+  }
+
   // Show HubSpot connection prompt for logged-in users with no HubSpot connection
   if (!isDemo && !connected && !hubspotLoading) {
     return (
@@ -287,8 +304,20 @@ export const DealsView: React.FC<{
           </p>
         </div>
 
-        {/* SEARCH + FILTERS */}
+        {/* REFRESH + SEARCH + FILTERS */}
         <div className="flex flex-col sm:flex-row gap-2">
+          {/* Refresh button */}
+          {!isDemo && connected && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-md text-sm text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors"
+            >
+              {syncing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+              <span className="hidden sm:inline">{syncing ? "Syncing..." : "Refresh"}</span>
+            </button>
+          )}
+
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={15} className="text-gray-400" />
@@ -397,12 +426,9 @@ export const DealsView: React.FC<{
                         <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
                           Stage
                         </span>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
-                          {getStageIcon(deal.stage)}
-                          <span className="truncate font-medium">
-                            {formatStageName(deal.stage)}
-                          </span>
-                        </div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate font-medium">
+                          {formatStageName(deal.stage)}
+                        </span>
                       </div>
 
                       {/* Divider */}
@@ -413,10 +439,9 @@ export const DealsView: React.FC<{
                         <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
                           Days in Stage
                         </span>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
-                          <Calendar size={15} strokeWidth={1.5} />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
                           {deal.daysInStage} days
-                        </div>
+                        </span>
                       </div>
 
                       {/* Divider */}
@@ -427,16 +452,15 @@ export const DealsView: React.FC<{
                         <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
                           Inactivity
                         </span>
-                        <div
-                          className={`flex items-center gap-1.5 text-sm font-medium ${
+                        <span
+                          className={`text-sm font-medium ${
                             deal.daysInactive > 14
                               ? "text-rose-600"
                               : "text-gray-700 dark:text-gray-300"
                           }`}
                         >
-                          <Clock size={15} strokeWidth={1.5} />
                           {deal.daysInactive} days
-                        </div>
+                        </span>
                       </div>
 
                       {/* Divider */}

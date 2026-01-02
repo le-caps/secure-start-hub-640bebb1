@@ -4,14 +4,21 @@ import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { MOCK_RISK_SETTINGS } from "@/data/mockData";
+import { UserProfile } from "@/types";
+import { DEFAULT_USER_PROFILE } from "@/constants";
 
 export type RiskSettings = Tables<"risk_settings">;
 export type UpdateRiskSettingsInput = TablesUpdate<"risk_settings">;
 
+// Extended risk settings that includes the parsed profile preferences
+export interface ExtendedRiskSettings extends RiskSettings {
+  parsedSettings?: Partial<UserProfile>;
+}
+
 export function useRiskSettings() {
   const { user, session } = useAuth();
   const { toast } = useToast();
-  const [riskSettings, setRiskSettings] = useState<RiskSettings | null>(null);
+  const [riskSettings, setRiskSettings] = useState<ExtendedRiskSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +28,7 @@ export function useRiskSettings() {
   const fetchRiskSettings = useCallback(async () => {
     // Demo mode: return mock data immediately
     if (isDemo) {
-      setRiskSettings(MOCK_RISK_SETTINGS);
+      setRiskSettings(MOCK_RISK_SETTINGS as ExtendedRiskSettings);
       setLoading(false);
       return;
     }
@@ -46,12 +53,23 @@ export function useRiskSettings() {
 
       if (!data) {
         // Create default settings if none exist
+        const defaultSettings = {
+          stalledThresholdDays: DEFAULT_USER_PROFILE.stalledThresholdDays,
+          riskWeightAmount: DEFAULT_USER_PROFILE.riskWeightAmount,
+          riskWeightStage: DEFAULT_USER_PROFILE.riskWeightStage,
+          riskWeightInactivity: DEFAULT_USER_PROFILE.riskWeightInactivity,
+          riskWeightNotes: DEFAULT_USER_PROFILE.riskWeightNotes,
+          highValueThreshold: DEFAULT_USER_PROFILE.highValueThreshold,
+          riskyStages: DEFAULT_USER_PROFILE.riskyStages,
+          riskKeywords: DEFAULT_USER_PROFILE.riskKeywords,
+        };
+
         const insertData: TablesInsert<"risk_settings"> = {
           user_id: user.id,
-          max_deal_amount: 100000,
+          max_deal_amount: DEFAULT_USER_PROFILE.highValueThreshold,
           risk_tolerance: "medium",
           alert_threshold: 80,
-          settings: null,
+          settings: defaultSettings,
         };
 
         const { data: newData, error: insertError } = await supabase
@@ -61,9 +79,18 @@ export function useRiskSettings() {
           .single();
 
         if (insertError) throw insertError;
-        setRiskSettings(newData);
+        
+        setRiskSettings({
+          ...newData,
+          parsedSettings: defaultSettings,
+        });
       } else {
-        setRiskSettings(data);
+        // Parse the settings JSON
+        const parsedSettings = data.settings as Partial<UserProfile> | null;
+        setRiskSettings({
+          ...data,
+          parsedSettings: parsedSettings || undefined,
+        });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur chargement paramètres";
@@ -102,7 +129,11 @@ export function useRiskSettings() {
 
       if (updateError) throw updateError;
 
-      setRiskSettings(data);
+      const parsedSettings = data.settings as Partial<UserProfile> | null;
+      setRiskSettings({
+        ...data,
+        parsedSettings: parsedSettings || undefined,
+      });
       toast({ title: "Paramètres mis à jour" });
       return data;
     } catch (err) {
@@ -113,6 +144,58 @@ export function useRiskSettings() {
     }
   };
 
+  // Save profile preferences to risk_settings
+  const saveProfilePreferences = async (profilePrefs: Partial<UserProfile>): Promise<boolean> => {
+    if (isDemo) {
+      toast({ 
+        variant: "destructive", 
+        title: "Mode démo", 
+        description: "Connectez-vous pour sauvegarder vos paramètres" 
+      });
+      return false;
+    }
+
+    if (!user || !riskSettings) return false;
+
+    const settingsToSave = {
+      stalledThresholdDays: profilePrefs.stalledThresholdDays,
+      riskWeightAmount: profilePrefs.riskWeightAmount,
+      riskWeightStage: profilePrefs.riskWeightStage,
+      riskWeightInactivity: profilePrefs.riskWeightInactivity,
+      riskWeightNotes: profilePrefs.riskWeightNotes,
+      highValueThreshold: profilePrefs.highValueThreshold,
+      riskyStages: profilePrefs.riskyStages,
+      riskKeywords: profilePrefs.riskKeywords,
+    };
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from("risk_settings")
+        .update({
+          settings: settingsToSave,
+          max_deal_amount: profilePrefs.highValueThreshold,
+        })
+        .eq("id", riskSettings.id)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      setRiskSettings({
+        ...data,
+        parsedSettings: settingsToSave,
+      });
+      toast({ title: "Preferences saved" });
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error saving preferences";
+      toast({ variant: "destructive", title: "Error", description: message });
+      console.error("useRiskSettings: save preferences error", err);
+      return false;
+    }
+  };
+
   return {
     riskSettings,
     loading,
@@ -120,5 +203,6 @@ export function useRiskSettings() {
     isDemo,
     refetch: fetchRiskSettings,
     updateRiskSettings,
+    saveProfilePreferences,
   };
 }
