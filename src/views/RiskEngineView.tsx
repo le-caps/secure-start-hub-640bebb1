@@ -2,6 +2,10 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Deal, UserProfile } from "@/types";
 import { SliderControl } from "@/components/SliderControl";
 import { formatStageName } from "@/lib/stageFormatter";
+import { useRiskSettings } from "@/hooks/useRiskSettings";
+import { useDemo } from "@/hooks/useDemo";
+import { DEFAULT_USER_PROFILE } from "@/constants";
+import { Loader2 } from "lucide-react";
 
 interface RiskEngineViewProps {
   profile: UserProfile;
@@ -14,13 +18,37 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
   onUpdateProfile,
   deals,
 }) => {
-  // Local copy — only saved when user clicks
+  const { riskSettings, loading, saveProfilePreferences, isDemo } = useRiskSettings();
   const [local, setLocal] = useState<UserProfile>(profile);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // Load saved preferences from risk_settings when available
   useEffect(() => {
-    setLocal(profile);
-  }, [profile]);
+    if (riskSettings?.parsedSettings && !isDemo) {
+      const savedPrefs = riskSettings.parsedSettings;
+      setLocal((prev) => ({
+        ...prev,
+        stalledThresholdDays: savedPrefs.stalledThresholdDays ?? prev.stalledThresholdDays,
+        riskWeightAmount: savedPrefs.riskWeightAmount ?? prev.riskWeightAmount,
+        riskWeightStage: savedPrefs.riskWeightStage ?? prev.riskWeightStage,
+        riskWeightInactivity: savedPrefs.riskWeightInactivity ?? prev.riskWeightInactivity,
+        riskWeightNotes: savedPrefs.riskWeightNotes ?? prev.riskWeightNotes,
+        highValueThreshold: savedPrefs.highValueThreshold ?? prev.highValueThreshold,
+        riskyStages: savedPrefs.riskyStages ?? prev.riskyStages,
+        riskKeywords: savedPrefs.riskKeywords ?? prev.riskKeywords,
+      }));
+    } else if (isDemo) {
+      setLocal(profile);
+    }
+  }, [riskSettings, isDemo, profile]);
+
+  // Sync with profile changes from parent
+  useEffect(() => {
+    if (isDemo) {
+      setLocal(profile);
+    }
+  }, [profile, isDemo]);
 
   const update = (key: keyof UserProfile, value: any) => {
     setLocal((prev) => ({
@@ -30,10 +58,26 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
   };
 
   // ---------- SAVE HANDLER ----------
-  const handleSave = () => {
-    onUpdateProfile(local);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    
+    if (isDemo) {
+      // Demo mode: just update local state
+      onUpdateProfile(local);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      setSaving(false);
+      return;
+    }
+
+    // Save to database
+    const success = await saveProfilePreferences(local);
+    if (success) {
+      onUpdateProfile(local);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
+    setSaving(false);
   };
 
   // ---------- RISK DISTRIBUTION ----------
@@ -84,12 +128,22 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
   }, [deals]);
 
   // ---------- BUTTON STYLE ----------
-  const saveBtnClasses = (isSaved: boolean) =>
-    `px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors ${
+  const saveBtnClasses = (isSaved: boolean, isSaving: boolean) =>
+    `px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors flex items-center gap-2 ${
       isSaved
         ? "bg-emerald-600 text-white cursor-default"
+        : isSaving
+        ? "bg-gray-400 text-white cursor-wait"
         : "bg-gray-900 text-white hover:bg-black dark:bg-white dark:text-gray-900"
     }`;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-blue-500" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
@@ -104,8 +158,9 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
           </p>
         </div>
         {/* Save button (top-right) */}
-        <button onClick={handleSave} disabled={saved} className={saveBtnClasses(saved)}>
-          {saved ? "Preferences Saved" : "Save Preferences"}
+        <button onClick={handleSave} disabled={saved || saving} className={saveBtnClasses(saved, saving)}>
+          {saving && <Loader2 size={14} className="animate-spin" />}
+          {saved ? "Preferences Saved" : saving ? "Saving..." : "Save Preferences"}
         </button>
       </div>
 
@@ -305,8 +360,9 @@ export const RiskEngineView: React.FC<RiskEngineViewProps> = ({
 
         {/* BOTTOM SAVE BUTTON */}
         <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 flex justify-end">
-          <button onClick={handleSave} disabled={saved} className={saveBtnClasses(saved)}>
-            {saved ? "Preferences Saved" : "Save Preferences"}
+          <button onClick={handleSave} disabled={saved || saving} className={saveBtnClasses(saved, saving)}>
+            {saving && <Loader2 size={14} className="animate-spin" />}
+            {saved ? "Preferences Saved" : saving ? "Saving..." : "Save Preferences"}
           </button>
         </div>
       </section>

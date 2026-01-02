@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Deal, AgentPreferences, Priority } from '@/types';
 import { generateFollowUp } from '@/services/aiService';
+import { formatStageName } from '@/lib/stageFormatter';
 import {
-  ArrowLeft, Building, User, Calendar,
-  Activity, Send, Sparkles, Copy, Check, RefreshCw, AlignLeft,
-  ExternalLink, Clock, Mail, AlertTriangle
+  ArrowLeft, Building, User,
+  Send, Sparkles, Copy, Check, RefreshCw, AlignLeft,
+  ExternalLink, Mail, AlertTriangle
 } from 'lucide-react';
 
 const getRiskColorClasses = (level?: 'low' | 'medium' | 'high') => {
@@ -303,8 +304,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
             {/* Vitals List */}
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-zinc-800">
-                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <Activity size={14} /> Inactive
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Inactive
                 </span>
                 <span className={`text-sm font-medium ${deal.daysInactive > 14 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-900 dark:text-white'}`}>
                   {deal.daysInactive} days
@@ -312,8 +313,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
               </div>
 
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-zinc-800">
-                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <Clock size={14} /> Days In Stage
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Days In Stage
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {deal.daysInStage} days
@@ -321,8 +322,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
               </div>
 
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-zinc-800">
-                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <Calendar size={14} /> Last Activity
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Last Activity
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {new Date(deal.lastActivityDate).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}
@@ -330,8 +331,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
               </div>
               
               <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-zinc-800">
-                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <Send size={14} /> Next Step
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Next Step
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {deal.nextStep || 'Not defined'}

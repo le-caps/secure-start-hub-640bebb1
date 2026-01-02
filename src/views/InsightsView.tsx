@@ -1,5 +1,6 @@
 import React from 'react';
 import { Deal } from '@/types';
+import { formatStageName } from '@/lib/stageFormatter';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
   PieChart, Pie, CartesianGrid 
@@ -42,7 +43,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
   }, {} as Record<string, number>);
 
   const valueByStageData = Object.entries(dealsByStage).map(([stage, value]) => ({
-    name: stage,
+    name: formatStageName(stage),
     value: value,
   }));
 
@@ -54,7 +55,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
   }, {} as Record<string, { totalDays: number, count: number }>);
 
   const bottleneckData = Object.entries(inactiveDaysByStage).map(([stage, data]) => ({
-    name: stage,
+    name: formatStageName(stage),
     avgInactive: Math.round(data.totalDays / data.count),
   }));
 
