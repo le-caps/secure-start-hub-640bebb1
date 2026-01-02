@@ -288,7 +288,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-md">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-md">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
               Deal Information
             </h3>
@@ -357,7 +357,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20">
-                <Sparkles size={18} />
+                <Sparkles size={20} />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
@@ -385,7 +385,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
                   Generates personalized emails using deal data and your preferences.
                 </p>
-                <button onClick={handleGenerate} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2">
+                <button onClick={handleGenerate} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2">
                   <Sparkles size={16} />
                   Generate Draft
                 </button>
@@ -451,7 +451,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 </button>
                 <button 
                   onClick={handleCopy}
-                  className="whitespace-nowrap flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 px-4 py-2 shadow-sm text-xs font-medium rounded-md transition-colors"
+                  className="whitespace-nowrap flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 px-4 py-2 shadow-sm text-xs font-medium rounded-md transition-colors"
                 >
                   <Copy size={14} />
                   Copy Text

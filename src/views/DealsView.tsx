@@ -87,14 +87,14 @@ const PriorityBadge = ({ priority }: { priority: Priority }) => {
 const getStageIcon = (stage: string) => {
   const s = stage.toLowerCase();
   if (s.includes("negotiation"))
-    return <Handshake size={15} strokeWidth={1.5} />;
-  if (s.includes("proposal")) return <FileText size={15} strokeWidth={1.5} />;
+    return <Handshake size={16} strokeWidth={2} />;
+  if (s.includes("proposal")) return <FileText size={16} strokeWidth={2} />;
   if (s.includes("qualified") || s.includes("won"))
-    return <CheckCircle2 size={15} strokeWidth={1.5} />;
-  if (s.includes("discovery")) return <Compass size={15} strokeWidth={1.5} />;
+    return <CheckCircle2 size={16} strokeWidth={2} />;
+  if (s.includes("discovery")) return <Compass size={16} strokeWidth={2} />;
   if (s.includes("evaluation") || s.includes("demo"))
-    return <ClipboardList size={15} strokeWidth={1.5} />;
-  return <CircleDashed size={15} strokeWidth={1.5} />;
+    return <ClipboardList size={16} strokeWidth={2} />;
+  return <CircleDashed size={16} strokeWidth={2} />;
 };
 
 // Priority bar (left accent)
@@ -242,7 +242,7 @@ export const DealsView: React.FC<{
             onClick={connect}
             className="bg-hubspot hover:bg-hubspot-hover text-white px-6 py-3 rounded-md font-medium flex items-center gap-2 transition-colors"
           >
-            <ExternalLink size={18} />
+            <ExternalLink size={20} />
             Connect HubSpot
           </button>
           <p className="text-xs text-gray-400 mt-4">
@@ -269,7 +269,7 @@ export const DealsView: React.FC<{
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
+            className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
           >
             {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             {syncing ? "Syncing..." : "Sync Now"}
@@ -313,14 +313,14 @@ export const DealsView: React.FC<{
               disabled={syncing}
               className="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-md text-sm text-gray-700 dark:text-gray-200 shadow-sm hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition-colors"
             >
-              {syncing ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+              {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
               <span className="hidden sm:inline">{syncing ? "Syncing..." : "Refresh"}</span>
             </button>
           )}
 
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={15} className="text-gray-400" />
+              <Search size={16} className="text-gray-400" />
             </div>
             <input
               type="text"
@@ -377,7 +377,7 @@ export const DealsView: React.FC<{
             return (
               <div
                 key={deal.id}
-                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 relative overflow-hidden pl-5 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 relative overflow-hidden pl-6 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
               >
                 {/* Priority Colored Bar */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${barStyle}`} />
@@ -482,7 +482,7 @@ export const DealsView: React.FC<{
 
                     <button
                       onClick={() => onSelectDeal(deal.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-auto rounded-md transition-colors"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-auto rounded-md transition-colors"
                     >
                       View Details
                       <ChevronRight size={16} />

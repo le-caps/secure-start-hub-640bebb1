@@ -66,18 +66,18 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
   };
 
   const healthData = [
-    { name: 'Healthy (<7d)', value: healthStats.healthy, color: '#6366f1' }, 
-    { name: 'Stalled (7-14d)', value: healthStats.stalled, color: '#a5b4fc' }, 
-    { name: 'Critical (>14d)', value: healthStats.critical, color: '#fb7185' }, 
+    { name: 'Healthy (<7d)', value: healthStats.healthy, color: '#10b981' },
+    { name: 'Stalled (7-14d)', value: healthStats.stalled, color: '#f59e0b' },
+    { name: 'Critical (>14d)', value: healthStats.critical, color: '#f43f5e' },
   ];
 
   const highPriorityDeals = deals.filter(d => d.priority === 'high');
 
   const StatCard = ({ title, value, sub, icon: Icon, iconColor }: any) => (
-    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg flex flex-col justify-between h-full shadow-md hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 rounded-lg flex flex-col justify-between h-full shadow-md hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start mb-4">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
-        <Icon size={18} className={iconColor} strokeWidth={2} />
+        <Icon size={20} className={iconColor} strokeWidth={1.75} />
       </div>
       <div>
         <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</p>
@@ -123,7 +123,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Chart 1: Value by Stage */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 rounded-lg shadow-md">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-6">Revenue at Risk by Stage</h3>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -145,14 +145,14 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
                   tick={{ fontSize: 11, fill: '#374151', fontWeight: 500 }}
                 />
                 <Tooltip content={<CustomTooltip prefix="$" />} cursor={{ fill: 'transparent' }} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} fill="#1D4ED8" />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} fill="#059669" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Chart 2: Bottleneck Analysis */}
-        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-5 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 p-6 rounded-lg shadow-md">
            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-6">Bottleneck Analysis (Avg. Inactive Days)</h3>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -173,7 +173,7 @@ export const InsightsView: React.FC<InsightsViewProps> = ({ deals, onSelectDeal 
                 <Tooltip content={<CustomTooltip suffix=" days" />} cursor={{ fill: 'transparent' }} />
                 <Bar dataKey="avgInactive" radius={[4, 4, 0, 0]}>
                    {bottleneckData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.avgInactive > 14 ? '#fb7185' : '#818cf8'} />
+                    <Cell key={`cell-${index}`} fill={entry.avgInactive > 14 ? '#f43f5e' : '#10b981'} />
                   ))}
                 </Bar>
               </BarChart>
