@@ -67,7 +67,11 @@ serve(async (req) => {
     const userId = data.user.id;
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/hubspot-callback`;
-    const scopes = ["crm.objects.deals.read"];
+    const scopes = [
+      "crm.objects.deals.read",
+      "crm.objects.contacts.read",
+      "crm.objects.companies.read"
+    ];
 
     const state = btoa(JSON.stringify({ userId }));
 
