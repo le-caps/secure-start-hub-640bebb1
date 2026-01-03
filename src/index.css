@@ -9,140 +9,140 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 240 5% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 5% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 5% 11%;
 
-    --primary: 160 84% 39%;
+    --primary: 222 47% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 220 13% 95%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 199 89% 48%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 222 47% 54%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* Risk semantic colors */
-    --risk-high: 0 84% 60%;
+    --risk-high: 0 70% 55%;
     --risk-high-foreground: 0 0% 100%;
-    --risk-high-bg: 0 86% 97%;
-    --risk-high-border: 0 84% 85%;
+    --risk-high-bg: 0 60% 97%;
+    --risk-high-border: 0 50% 88%;
 
-    --risk-medium: 38 92% 50%;
+    --risk-medium: 35 85% 58%;
     --risk-medium-foreground: 0 0% 100%;
-    --risk-medium-bg: 38 92% 95%;
-    --risk-medium-border: 38 92% 80%;
+    --risk-medium-bg: 35 90% 96%;
+    --risk-medium-border: 35 75% 85%;
 
-    --risk-low: 160 84% 39%;
+    --risk-low: 150 50% 50%;
     --risk-low-foreground: 0 0% 100%;
-    --risk-low-bg: 160 84% 95%;
-    --risk-low-border: 160 84% 75%;
+    --risk-low-bg: 150 45% 96%;
+    --risk-low-border: 150 40% 85%;
 
     /* Priority semantic colors */
-    --priority-high: 350 89% 60%;
-    --priority-high-bg: 350 89% 97%;
-    --priority-high-border: 350 89% 85%;
+    --priority-high: 0 70% 55%;
+    --priority-high-bg: 0 60% 97%;
+    --priority-high-border: 0 50% 88%;
 
-    --priority-medium: 38 92% 50%;
-    --priority-medium-bg: 38 92% 95%;
-    --priority-medium-border: 38 92% 80%;
+    --priority-medium: 35 85% 58%;
+    --priority-medium-bg: 35 90% 96%;
+    --priority-medium-border: 35 75% 85%;
 
-    --priority-low: 220 9% 46%;
-    --priority-low-bg: 220 9% 97%;
-    --priority-low-border: 220 9% 85%;
+    --priority-low: 240 5% 50%;
+    --priority-low-bg: 240 5% 96%;
+    --priority-low-border: 240 5% 88%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 240 5% 20%;
+    --sidebar-primary: 240 5% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 240 6% 92%;
+    --sidebar-ring: 222 47% 54%;
   }
 
   .dark {
-    --background: 220 13% 9%;
-    --foreground: 210 20% 98%;
+    --background: 240 10% 4%;
+    --foreground: 240 5% 96%;
 
-    --card: 220 13% 12%;
-    --card-foreground: 210 20% 98%;
+    --card: 240 6% 7%;
+    --card-foreground: 240 5% 96%;
 
-    --popover: 220 13% 12%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 240 6% 7%;
+    --popover-foreground: 240 5% 96%;
 
-    --primary: 160 84% 39%;
-    --primary-foreground: 160 84% 95%;
+    --primary: 222 47% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 20% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 240 5% 96%;
 
-    --muted: 215 20% 20%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 64%;
 
-    --accent: 199 89% 48%;
+    --accent: 217 91% 64%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 20%;
-    --input: 220 13% 20%;
-    --ring: 160 84% 39%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 222 47% 58%;
 
     /* Risk semantic colors - dark mode */
-    --risk-high: 0 72% 51%;
-    --risk-high-foreground: 0 86% 97%;
-    --risk-high-bg: 0 62% 15%;
-    --risk-high-border: 0 62% 25%;
+    --risk-high: 0 70% 60%;
+    --risk-high-foreground: 0 0% 100%;
+    --risk-high-bg: 0 50% 12%;
+    --risk-high-border: 0 45% 22%;
 
-    --risk-medium: 38 92% 50%;
-    --risk-medium-foreground: 38 92% 95%;
-    --risk-medium-bg: 38 50% 15%;
-    --risk-medium-border: 38 50% 25%;
+    --risk-medium: 35 85% 62%;
+    --risk-medium-foreground: 0 0% 100%;
+    --risk-medium-bg: 35 45% 12%;
+    --risk-medium-border: 35 40% 22%;
 
-    --risk-low: 160 84% 39%;
-    --risk-low-foreground: 160 84% 95%;
-    --risk-low-bg: 160 50% 15%;
-    --risk-low-border: 160 50% 25%;
+    --risk-low: 150 50% 55%;
+    --risk-low-foreground: 0 0% 100%;
+    --risk-low-bg: 150 35% 12%;
+    --risk-low-border: 150 30% 22%;
 
     /* Priority semantic colors - dark mode */
-    --priority-high: 350 89% 60%;
-    --priority-high-bg: 350 50% 15%;
-    --priority-high-border: 350 50% 25%;
+    --priority-high: 0 70% 60%;
+    --priority-high-bg: 0 50% 12%;
+    --priority-high-border: 0 45% 22%;
 
-    --priority-medium: 38 92% 50%;
-    --priority-medium-bg: 38 50% 15%;
-    --priority-medium-border: 38 50% 25%;
+    --priority-medium: 35 85% 62%;
+    --priority-medium-bg: 35 45% 12%;
+    --priority-medium-border: 35 40% 22%;
 
-    --priority-low: 220 9% 65%;
-    --priority-low-bg: 220 9% 15%;
-    --priority-low-border: 220 9% 25%;
+    --priority-low: 240 5% 60%;
+    --priority-low-bg: 240 5% 12%;
+    --priority-low-border: 240 5% 22%;
     
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 240 6% 6%;
+    --sidebar-foreground: 240 5% 85%;
+    --sidebar-primary: 222 47% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 4% 12%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 12%;
+    --sidebar-ring: 222 47% 58%;
   }
 }
 
@@ -157,9 +157,14 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 

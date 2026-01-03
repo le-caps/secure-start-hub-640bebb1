@@ -49,7 +49,7 @@ export const RiskBadge = ({
 
   return (
     <span
-      className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles[level]}`}
+      className={`text-[11px] font-medium px-2.5 py-1 rounded-md border ${styles[level]}`}
     >
       {labels[level]} · {score}
     </span>
@@ -74,7 +74,7 @@ const PriorityBadge = ({ priority }: { priority: Priority }) => {
 
   return (
     <span
-      className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${styles[priority]}`}
+      className={`text-[11px] font-medium px-2.5 py-1 rounded-md border ${styles[priority]}`}
     >
       {labels[priority]}
     </span>
@@ -292,14 +292,14 @@ export const DealsView: React.FC<{
   }
 
   return (
-    <div className="space-y-6 animate-fade-in pb-20 max-w-5xl mx-auto px-4 w-full">
+    <div className="space-y-8 animate-fade-in pb-20 max-w-6xl mx-auto px-6 w-full">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">
             {isDemo ? "My Stalled Deals (Demo)" : "My Stalled Deals"}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
+          <p className="text-muted-foreground mt-1 text-sm">
             Action required on {filteredAndSortedDeals.length} opportunities
           </p>
         </div>
@@ -370,22 +370,22 @@ export const DealsView: React.FC<{
       </div>
 
       {/* DEAL CARDS */}
-      <div className="grid gap-4 max-w-5xl mx-auto w-full">
+      <div className="grid gap-5 max-w-6xl mx-auto w-full">
         {paginatedDeals.length > 0 ? (
           paginatedDeals.map((deal) => {
             const barStyle = getPriorityBarStyle(deal.priority);
             return (
               <div
                 key={deal.id}
-                className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 relative overflow-hidden pl-6 shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+                className="bg-card border border-border/50 rounded-lg p-6 relative overflow-hidden pl-7 shadow-[0_1px_3px_0_rgb(0_0_0_/_0.02),_0_1px_2px_0_rgb(0_0_0_/_0.03)] dark:shadow-[0_1px_3px_0_rgb(0_0_0_/_0.3),_0_1px_2px_0_rgb(0_0_0_/_0.4)] hover:shadow-lg dark:hover:shadow-[0_4px_12px_0_rgb(0_0_0_/_0.5)] transition-all duration-200 hover:-translate-y-0.5 group"
               >
                 {/* Priority Colored Bar */}
-                <div className={`absolute left-0 top-0 bottom-0 w-1 ${barStyle}`} />
-                <div className="relative z-10 flex flex-col gap-4">
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${barStyle} group-hover:w-1.5 transition-all`} />
+                <div className="relative z-10 flex flex-col gap-5">
                   {/* Top row */}
                   <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
                         <PriorityBadge priority={deal.priority} />
                         <RiskBadge
                           score={deal.riskScore}
@@ -394,19 +394,19 @@ export const DealsView: React.FC<{
                       </div>
                       <button
                         onClick={() => onSelectDeal(deal.id)}
-                        className="text-base font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
+                        className="text-lg font-bold text-foreground hover:text-primary transition-colors text-left tracking-tight"
                       >
                         {deal.name}
                       </button>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                        <Building size={14} className="text-gray-400" />
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Building size={14} className="text-muted-foreground/70" />
                         {deal.companyName}
-                        <span className="text-gray-300">•</span>
-                        <User size={14} className="text-gray-400" />
+                        <span className="text-border">•</span>
+                        <User size={14} className="text-muted-foreground/70" />
                         {deal.contactName}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                    <p className="text-xl font-bold text-foreground tracking-tight">
                       {new Intl.NumberFormat("en-US", {
                         style: "currency",
                         currency: deal.currency,
@@ -416,47 +416,47 @@ export const DealsView: React.FC<{
                   </div>
 
                   {/* Divider */}
-                  <div className="h-px bg-gray-100 dark:bg-zinc-800" />
+                  <div className="h-px bg-border/50" />
 
                   {/* Bottom row */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mt-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-0 flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 flex-1 min-w-0">
                       {/* Stage */}
-                      <div className="flex-1 flex flex-col gap-1 sm:pr-4">
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                      <div className="flex-1 flex flex-col gap-1.5 sm:pr-4">
+                        <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-wider">
                           Stage
                         </span>
-                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate font-medium">
+                        <span className="text-sm text-foreground truncate font-medium">
                           {formatStageName(deal.stage)}
                         </span>
                       </div>
 
                       {/* Divider */}
-                      <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-zinc-700" />
+                      <div className="hidden sm:block w-px h-10 bg-border/50" />
 
                       {/* Days in Stage */}
-                      <div className="flex-1 flex flex-col gap-1 sm:px-4">
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                      <div className="flex-1 flex flex-col gap-1.5 sm:px-4">
+                        <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-wider">
                           Days in Stage
                         </span>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-sm text-foreground font-medium">
                           {deal.daysInStage} days
                         </span>
                       </div>
 
                       {/* Divider */}
-                      <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-zinc-700" />
+                      <div className="hidden sm:block w-px h-10 bg-border/50" />
 
                       {/* Inactivity */}
-                      <div className="flex-1 flex flex-col gap-1 sm:px-4">
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                      <div className="flex-1 flex flex-col gap-1.5 sm:px-4">
+                        <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-wider">
                           Inactivity
                         </span>
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-sm font-semibold ${
                             deal.daysInactive > 14
-                              ? "text-rose-600"
-                              : "text-gray-700 dark:text-gray-300"
+                              ? "text-destructive"
+                              : "text-foreground"
                           }`}
                         >
                           {deal.daysInactive} days
@@ -464,15 +464,15 @@ export const DealsView: React.FC<{
                       </div>
 
                       {/* Divider */}
-                      <div className="hidden sm:block w-px h-8 bg-gray-200 dark:bg-zinc-700" />
+                      <div className="hidden sm:block w-px h-10 bg-border/50" />
 
                       {/* Next Step */}
-                      <div className="flex-1 flex flex-col gap-1 sm:pl-4">
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                      <div className="flex-1 flex flex-col gap-1.5 sm:pl-4">
+                        <span className="text-[10px] text-muted-foreground/70 font-semibold uppercase tracking-wider">
                           Next Step
                         </span>
                         <span
-                          className="text-sm text-gray-600 dark:text-gray-400 truncate"
+                          className="text-sm text-muted-foreground truncate font-medium"
                           title={deal.nextStep || ""}
                         >
                           {deal.nextStep || "-"}
@@ -482,7 +482,7 @@ export const DealsView: React.FC<{
 
                     <button
                       onClick={() => onSelectDeal(deal.id)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-1.5 shrink-0 w-full sm:w-auto rounded-md transition-colors"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2.5 text-sm font-medium flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto rounded-lg shadow-sm transition-all active:scale-[0.98]"
                     >
                       View Details
                       <ChevronRight size={16} />

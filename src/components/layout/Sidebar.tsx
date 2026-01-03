@@ -39,17 +39,17 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-sidebar">
+    <aside className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo / Header */}
-      <div className="flex h-16 items-center gap-3 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
+      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-base shadow-sm">
           D
         </div>
-        <span className="text-lg font-semibold">Drift</span>
+        <span className="text-lg font-bold tracking-tight">Drift</span>
         {isDemo && (
-          <Badge 
-            variant="outline" 
-            className="ml-auto bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 text-xs"
+          <Badge
+            variant="outline"
+            className="ml-auto bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25 text-xs font-medium"
           >
             <FlaskConical className="h-3 w-3 mr-1" />
             Demo
@@ -58,7 +58,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-6">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -66,36 +66,36 @@ export function Sidebar() {
             end={to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                  : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )
             }
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-[18px] w-[18px]" strokeWidth={2.5} />
             {label}
           </NavLink>
         ))}
       </nav>
 
       {/* User section */}
-      <div className="border-t p-4">
+      <div className="border-t border-sidebar-border p-4">
         {user ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+            <div className="flex items-center gap-3 px-1">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary ring-2 ring-primary/10">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 truncate">
                 <p className="text-sm font-medium truncate">{user.email}</p>
-                <p className="text-xs text-muted-foreground">Connected</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Connected</p>
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="w-full"
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
               onClick={handleAuthAction}
             >
               <LogOut className="h-4 w-4 mr-2" />
@@ -105,6 +105,7 @@ export function Sidebar() {
         ) : (
           <Button
             className="w-full"
+            size="default"
             onClick={handleAuthAction}
           >
             <LogIn className="h-4 w-4 mr-2" />
