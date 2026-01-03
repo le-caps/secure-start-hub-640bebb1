@@ -197,13 +197,15 @@ serve(async (req) => {
       contacts.forEach((c) => contactIds.add(c.id));
     }
 
-    // Fetch companies in batch
+    // Fetch companies in batch (use individual fetches as fallback if batch fails)
     const companiesMap = new Map<string, HubSpotCompany>();
     if (companyIds.size > 0) {
-      const companyIdsList = Array.from(companyIds).slice(0, 100); // Limit to 100
-      const companiesUrl = `https://api.hubapi.com/crm/v3/objects/companies/batch/read`;
+      const companyIdsList = Array.from(companyIds).slice(0, 100);
+      console.log("[hubspot-sync] Fetching", companyIdsList.length, "companies:", companyIdsList);
       
+      // Try batch read first
       try {
+        const companiesUrl = `https://api.hubapi.com/crm/v3/objects/companies/batch/read`;
         const companiesResponse = await fetch(companiesUrl, {
           method: "POST",
           headers: {
@@ -218,23 +220,45 @@ serve(async (req) => {
 
         if (companiesResponse.ok) {
           const companiesJson = await companiesResponse.json();
+          console.log("[hubspot-sync] Companies batch response:", JSON.stringify(companiesJson).slice(0, 500));
           for (const company of companiesJson.results || []) {
             companiesMap.set(company.id, company);
           }
-          console.log("[hubspot-sync] Fetched", companiesMap.size, "companies");
+          console.log("[hubspot-sync] Fetched", companiesMap.size, "companies via batch");
+        } else {
+          const errText = await companiesResponse.text();
+          console.error("[hubspot-sync] Companies batch failed:", companiesResponse.status, errText);
+          
+          // Fallback: fetch individually
+          for (const companyId of companyIdsList) {
+            try {
+              const singleUrl = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name,domain,industry`;
+              const singleRes = await fetch(singleUrl, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+              });
+              if (singleRes.ok) {
+                const company = await singleRes.json();
+                companiesMap.set(company.id, company);
+              }
+            } catch (e) {
+              console.error("[hubspot-sync] Error fetching company", companyId, e);
+            }
+          }
+          console.log("[hubspot-sync] Fetched", companiesMap.size, "companies via individual calls");
         }
       } catch (e) {
         console.error("[hubspot-sync] Error fetching companies:", e);
       }
     }
 
-    // Fetch contacts in batch
+    // Fetch contacts in batch (use individual fetches as fallback if batch fails)
     const contactsMap = new Map<string, HubSpotContact>();
     if (contactIds.size > 0) {
-      const contactIdsList = Array.from(contactIds).slice(0, 100); // Limit to 100
-      const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts/batch/read`;
+      const contactIdsList = Array.from(contactIds).slice(0, 100);
+      console.log("[hubspot-sync] Fetching", contactIdsList.length, "contacts:", contactIdsList);
       
       try {
+        const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts/batch/read`;
         const contactsResponse = await fetch(contactsUrl, {
           method: "POST",
           headers: {
@@ -249,10 +273,31 @@ serve(async (req) => {
 
         if (contactsResponse.ok) {
           const contactsJson = await contactsResponse.json();
+          console.log("[hubspot-sync] Contacts batch response:", JSON.stringify(contactsJson).slice(0, 500));
           for (const contact of contactsJson.results || []) {
             contactsMap.set(contact.id, contact);
           }
-          console.log("[hubspot-sync] Fetched", contactsMap.size, "contacts");
+          console.log("[hubspot-sync] Fetched", contactsMap.size, "contacts via batch");
+        } else {
+          const errText = await contactsResponse.text();
+          console.error("[hubspot-sync] Contacts batch failed:", contactsResponse.status, errText);
+          
+          // Fallback: fetch individually
+          for (const contactId of contactIdsList) {
+            try {
+              const singleUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email,phone`;
+              const singleRes = await fetch(singleUrl, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+              });
+              if (singleRes.ok) {
+                const contact = await singleRes.json();
+                contactsMap.set(contact.id, contact);
+              }
+            } catch (e) {
+              console.error("[hubspot-sync] Error fetching contact", contactId, e);
+            }
+          }
+          console.log("[hubspot-sync] Fetched", contactsMap.size, "contacts via individual calls");
         }
       } catch (e) {
         console.error("[hubspot-sync] Error fetching contacts:", e);
@@ -270,11 +315,19 @@ serve(async (req) => {
       const contactId = deal.associations?.contacts?.results?.[0]?.id;
       const contact = contactId ? contactsMap.get(contactId) : null;
       
-      // Calculate days in stage (HubSpot provides this in milliseconds)
+      // Calculate days in stage
+      // HubSpot's hs_time_in_current_dealstage is in milliseconds
       const timeInStageMs = deal.properties.hs_time_in_current_dealstage 
         ? parseInt(deal.properties.hs_time_in_current_dealstage) 
         : 0;
-      const daysInStage = Math.floor(timeInStageMs / (1000 * 60 * 60 * 24));
+      let daysInStage = Math.floor(timeInStageMs / (1000 * 60 * 60 * 24));
+      
+      // Fallback: if daysInStage is 0 and we have createdate, calculate from createdate
+      // This happens when the deal has been in the same stage since creation
+      if (daysInStage === 0 && deal.properties.createdate) {
+        const createDate = new Date(deal.properties.createdate);
+        daysInStage = Math.floor((Date.now() - createDate.getTime()) / (1000 * 60 * 60 * 24));
+      }
       
       // Calculate days inactive (since last modified)
       const lastModified = deal.properties.hs_lastmodifieddate 
@@ -289,6 +342,8 @@ serve(async (req) => {
             .filter(Boolean)
             .join(" ") || null
         : null;
+      
+      console.log(`[hubspot-sync] Deal ${deal.id}: company=${company?.properties?.name}, contact=${contactName}, daysInStage=${daysInStage}, daysInactive=${daysInactive}`);
 
       const dealRecord = {
         user_id: userId,
