@@ -213,7 +213,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            properties: ["name", "domain", "industry"],
+            properties: ["name"],
             inputs: companyIdsList.map((id) => ({ id })),
           }),
         });
@@ -232,13 +232,16 @@ serve(async (req) => {
           // Fallback: fetch individually
           for (const companyId of companyIdsList) {
             try {
-              const singleUrl = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name,domain,industry`;
+              const singleUrl = `https://api.hubapi.com/crm/v3/objects/companies/${companyId}?properties=name`;
               const singleRes = await fetch(singleUrl, {
                 headers: { Authorization: `Bearer ${accessToken}` },
               });
               if (singleRes.ok) {
                 const company = await singleRes.json();
                 companiesMap.set(company.id, company);
+              } else {
+                const t = await singleRes.text();
+                console.error("[hubspot-sync] Company fetch failed:", companyId, singleRes.status, t);
               }
             } catch (e) {
               console.error("[hubspot-sync] Error fetching company", companyId, e);
@@ -266,7 +269,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            properties: ["firstname", "lastname", "email", "phone"],
+            properties: ["firstname", "lastname"],
             inputs: contactIdsList.map((id) => ({ id })),
           }),
         });
@@ -285,13 +288,16 @@ serve(async (req) => {
           // Fallback: fetch individually
           for (const contactId of contactIdsList) {
             try {
-              const singleUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email,phone`;
+              const singleUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname`;
               const singleRes = await fetch(singleUrl, {
                 headers: { Authorization: `Bearer ${accessToken}` },
               });
               if (singleRes.ok) {
                 const contact = await singleRes.json();
                 contactsMap.set(contact.id, contact);
+              } else {
+                const t = await singleRes.text();
+                console.error("[hubspot-sync] Contact fetch failed:", contactId, singleRes.status, t);
               }
             } catch (e) {
               console.error("[hubspot-sync] Error fetching contact", contactId, e);
@@ -307,14 +313,26 @@ serve(async (req) => {
     // Upsert deals
     let synced = 0;
     for (const deal of hubspotDeals) {
-      // Get associated company
-      const companyId = deal.associations?.companies?.results?.[0]?.id;
+      const companyIdsForDeal = (deal.associations?.companies?.results || [])
+        .map((r) => r.id)
+        .filter(Boolean);
+      const contactIdsForDeal = (deal.associations?.contacts?.results || [])
+        .map((r) => r.id)
+        .filter(Boolean);
+
+      let companyId = companyIdsForDeal[0];
+      let contactId = contactIdsForDeal[0];
+
+      // If multiple associations exist, try to pick the one labeled "Primary"
+      if (companyIdsForDeal.length > 1) {
+        companyId = (await getPrimaryAssociationId(accessToken, deal.id, "companies")) ?? companyId;
+      }
+      if (contactIdsForDeal.length > 1) {
+        contactId = (await getPrimaryAssociationId(accessToken, deal.id, "contacts")) ?? contactId;
+      }
+
       const company = companyId ? companiesMap.get(companyId) : null;
-      
-      // Get associated contact
-      const contactId = deal.associations?.contacts?.results?.[0]?.id;
       const contact = contactId ? contactsMap.get(contactId) : null;
-      
       // Calculate days in stage
       // HubSpot's hs_time_in_current_dealstage is in milliseconds
       const timeInStageMs = deal.properties.hs_time_in_current_dealstage 
@@ -413,6 +431,53 @@ serve(async (req) => {
     });
   }
 });
+
+async function getPrimaryAssociationId(
+  accessToken: string,
+  dealId: string,
+  toObjectType: "contacts" | "companies",
+): Promise<string | null> {
+  try {
+    const url = `https://api.hubapi.com/crm/v4/objects/deals/${dealId}/associations/${toObjectType}?limit=100`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const t = await res.text();
+      console.error("[hubspot-sync] Association fetch failed:", {
+        dealId,
+        toObjectType,
+        status: res.status,
+        body: t.slice(0, 300),
+      });
+      return null;
+    }
+
+    const json = await res.json();
+    const results: Array<any> = Array.isArray(json?.results) ? json.results : [];
+
+    const primary = results.find((r) =>
+      (r.associationTypes || []).some(
+        (t: any) => String(t?.label || "").toLowerCase() === "primary",
+      ),
+    );
+
+    const chosen = primary || results[0];
+    const id = chosen?.toObjectId;
+    return id != null ? String(id) : null;
+  } catch (e) {
+    console.error("[hubspot-sync] Error fetching associations:", {
+      dealId,
+      toObjectType,
+      error: e instanceof Error ? e.message : String(e),
+    });
+    return null;
+  }
+}
 
 /**
  * Calculate a risk score based on deal metrics
