@@ -34,24 +34,24 @@ function DealCard({ deal }: { deal: Deal }) {
   const stage = DEAL_STAGES[deal.stage as keyof typeof DEAL_STAGES] ?? DEAL_STAGES.new;
 
   return (
-    <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
+    <Card className="hover:shadow-lg hover:border-primary/20 transition-all duration-200 cursor-pointer group">
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium truncate">{deal.name}</h3>
-            <p className="text-sm text-muted-foreground truncate">
+            <h3 className="font-semibold text-base truncate group-hover:text-primary transition-colors">{deal.name}</h3>
+            <p className="text-sm text-muted-foreground truncate mt-1">
               {(metadata?.company as string) ?? "—"}
             </p>
           </div>
-          <Badge className={`${stage.color} text-white`}>
+          <Badge className={`${stage.color} text-white ml-3 shrink-0`}>
             {stage.label}
           </Badge>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold">
+        <div className="flex items-center justify-between pt-3 border-t border-border/50">
+          <span className="text-xl font-bold tracking-tight">
             {formatCurrency(deal.amount)}
           </span>
-          <div className={`flex items-center gap-1 text-sm ${riskLevel.color}`}>
+          <div className={`flex items-center gap-1.5 text-sm font-medium ${riskLevel.color}`}>
             <AlertTriangle className="h-4 w-4" />
             <span>{riskScore}%</span>
           </div>
@@ -88,35 +88,35 @@ export function DashboardPage() {
     : 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">
             Vue d'ensemble de vos deals et performances
           </p>
         </div>
-        <Button onClick={handleCreateDeal} className="gap-2">
+        <Button onClick={handleCreateDeal} className="gap-2" size="lg">
           <Plus className="h-4 w-4" />
           Nouveau Deal
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pipeline Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pipeline Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground/70" />
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-2xl font-bold tracking-tight">{formatCurrency(totalValue)}</div>
+                <p className="text-xs text-muted-foreground mt-1">
                   {deals.length} deals au total
                 </p>
               </>
@@ -125,17 +125,17 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Deals Actifs</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Deals Actifs</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground/70" />
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{activeDeals.length}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-2xl font-bold tracking-tight">{activeDeals.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">
                   En cours de négociation
                 </p>
               </>
@@ -144,17 +144,17 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Deals Gagnés</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Deals Gagnés</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500/70" />
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-2xl font-bold text-green-600">{wonDeals.length}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-500 tracking-tight">{wonDeals.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">
                   Ce trimestre
                 </p>
               </>
@@ -163,19 +163,19 @@ export function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Risque Moyen</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Risque Moyen</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground/70" />
           </CardHeader>
           <CardContent>
             {loading ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className={`text-2xl font-bold ${getRiskLevel(avgRisk).color}`}>
+                <div className={`text-2xl font-bold tracking-tight ${getRiskLevel(avgRisk).color}`}>
                   {avgRisk}%
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Sur tous vos deals
                 </p>
               </>
@@ -186,12 +186,12 @@ export function DashboardPage() {
 
       {/* Recent Deals */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Deals récents</h2>
+        <h2 className="text-xl font-semibold mb-5 tracking-tight">Deals récents</h2>
         {loading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Card key={i}>
-                <CardContent className="p-4">
+                <CardContent className="p-5">
                   <Skeleton className="h-4 w-3/4 mb-2" />
                   <Skeleton className="h-3 w-1/2 mb-4" />
                   <Skeleton className="h-6 w-24" />
@@ -201,20 +201,22 @@ export function DashboardPage() {
           </div>
         ) : deals.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-medium mb-2">Aucun deal</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="rounded-full bg-muted/50 p-4 mb-4">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-base mb-1">Aucun deal</h3>
+              <p className="text-sm text-muted-foreground mb-6 text-center max-w-sm">
                 Commencez par créer votre premier deal
               </p>
-              <Button onClick={handleCreateDeal}>
+              <Button onClick={handleCreateDeal} size="lg">
                 <Plus className="h-4 w-4 mr-2" />
                 Nouveau Deal
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {deals.slice(0, 6).map((deal) => (
               <DealCard key={deal.id} deal={deal} />
             ))}
