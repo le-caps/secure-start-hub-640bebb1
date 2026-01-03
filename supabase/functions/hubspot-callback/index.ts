@@ -8,8 +8,9 @@ serve(async (req) => {
     const state = url.searchParams.get("state");
     const error = url.searchParams.get("error");
 
-    // Get frontend URL for redirects - use root path since app uses view states not routes
-    const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://yvzbwapgqicnuhlyteeq.lovableproject.com";
+    // Get frontend URL for redirects
+    // Priority: SITE_URL env var > Lovable app URL
+    const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://drift-deal-whisperer.lovable.app";
 
     if (error) {
       console.error("[hubspot-callback] OAuth error:", error);
@@ -97,7 +98,7 @@ serve(async (req) => {
     return Response.redirect(`${FRONTEND_URL}/?hubspot=connected`, 302);
   } catch (err) {
     console.error("[hubspot-callback] Unexpected error:", err);
-    const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://yvzbwapgqicnuhlyteeq.lovableproject.com";
+    const FRONTEND_URL = Deno.env.get("SITE_URL") || "https://drift-deal-whisperer.lovable.app";
     return Response.redirect(`${FRONTEND_URL}/?error=unexpected`, 302);
   }
 });
