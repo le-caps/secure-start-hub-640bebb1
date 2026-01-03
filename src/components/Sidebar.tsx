@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isO
         {/* Logo Area */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 dark:bg-emerald-500 border border-emerald-500/20 flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-emerald-600/20">
               D
             </div>
             <span className={`font-semibold text-gray-900 dark:text-white transition-all duration-200 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, isO
           <NavItem view="settings" icon={Settings} label="Settings" />
           
           <div className={`flex items-center gap-3 px-3 py-2 mt-4 ${isCollapsed ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
+            <div className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-600 border-2 border-emerald-500/30 flex items-center justify-center text-white text-xs font-medium">
               {getInitials()}
             </div>
             <div className={`transition-all duration-200 min-w-0 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 flex-1'}`}>

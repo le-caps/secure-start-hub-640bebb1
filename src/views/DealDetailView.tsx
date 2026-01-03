@@ -173,7 +173,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
       </div>
       
       {/* Deal Header */}
-      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-md">
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -275,8 +275,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
         {/* Left Column: Deal Information */}
         <div className="space-y-6">
           {/* Contact Card */}
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 flex items-center gap-4 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-4 flex items-center gap-4 shadow-md">
+            <div className="w-12 h-12 rounded-full bg-slate-700 dark:bg-slate-600 border-2 border-emerald-500/30 flex items-center justify-center text-white font-semibold">
               {deal.contactName.split(' ').map(n => n[0]).join('')}
             </div>
             <div className="flex-1">
@@ -288,7 +288,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-sm">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-6 shadow-md">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
               Deal Information
             </h3>
@@ -356,8 +356,8 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
         <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-lg p-5 shadow-sm h-fit">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-                <Sparkles size={18} />
+              <div className="p-2 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white shadow-sm shadow-emerald-600/20">
+                <Sparkles size={20} />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">AI Assistant</h3>
@@ -385,7 +385,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
                   Generates personalized emails using deal data and your preferences.
                 </p>
-                <button onClick={handleGenerate} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2">
+                <button onClick={handleGenerate} className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-md font-medium transition-colors flex items-center gap-2">
                   <Sparkles size={16} />
                   Generate Draft
                 </button>
@@ -451,7 +451,7 @@ export const DealDetailView: React.FC<DealDetailViewProps> = ({
                 </button>
                 <button 
                   onClick={handleCopy}
-                  className="whitespace-nowrap flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 px-4 py-2 shadow-sm text-xs font-medium rounded-md transition-colors"
+                  className="whitespace-nowrap flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 px-4 py-2 shadow-sm text-xs font-medium rounded-md transition-colors"
                 >
                   <Copy size={14} />
                   Copy Text
